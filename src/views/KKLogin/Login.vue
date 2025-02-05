@@ -17,7 +17,7 @@
             <div class="tit">登录</div>
             <el-form-item prop="username">
               <el-input placeholder="请输入账号" prefix-icon="el-icon-user" v-model="ruleForm.username"
-                @keyup.enter.native="submitForm('ruleForm')" size="medium">
+                @keyup.enter.native="submitForm('ruleForm')" size="large">
               </el-input>
             </el-form-item>
             <el-form-item prop="password">
@@ -30,8 +30,18 @@
                 <el-radio-button label="lily">管理</el-radio-button>
                 <el-radio-button label="Simulation">模拟</el-radio-button>
               </el-radio-group>
+      <div class="checkbox-group">
+        <label>
+          <input type="radio" v-model="selectedOption" value="isSimulation" /> 模拟
+    </label>
+        <label>
+          <input type="radio" v-model="selectedOption" value="isTesting" /> 测试
+        </label>
+        <label>
+          <input type="radio" v-model="selectedOption" value="isUAT" /> UAT
+        </label>
+      </div>
             </el-form-item>
-
             <el-form-item>
               <el-button type="primary" class="btn-login" @click="submitForm('ruleForm')" size="medium">进入系统</el-button>
             </el-form-item>
@@ -67,6 +77,7 @@ export default {
         password: [{ required: true, message: '密码必填', trigger: 'blue' }]
       },
       labelPosition: 'Simulation',
+      selectedOption: 'isSimulation', // 默认选中 "模拟"
       isElectron: false
     }
   },
@@ -87,6 +98,8 @@ export default {
     submitForm: debounce(function (formName) {
       const { mac } = this.isElectron ? window.v1.getNetwork() : { mac: 'cc:5e:f8:f0:5f:85' }
       console.log("mac:", mac)
+      console.log("labelPosition:", this.labelPosition)
+      this.$store.commit('SET_ENVIRONMENT', this.selectedOption);
       const hwinfo = this.$md5(mac.replace(/:/g, ""))
       this.$refs[formName].validate((valid) => {
         if (valid) {
@@ -296,6 +309,69 @@ export default {
 
 <style lang="scss" scoped>
 @import "@/assets/css/style.scss";
+
+.checkbox-group {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 20px; /* 控制 checkbox 间的间距 */
+  margin-top: 10px; /* 控制整个 checkbox group 的上边距 */
+}
+
+.checkbox-group label {
+  font-size: 14px; /* 设置字体大小 */
+  color: #333; /* 设置字体颜色 */
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.checkbox-group input[type="checkbox"] {
+  width: 18px; /* 设置勾选框的宽度 */
+  height: 18px; /* 设置勾选框的高度 */
+  margin-right: 8px; /* 控制勾选框和文字之间的间距 */
+  border: 2px solid #ccc; /* 边框颜色 */
+  border-radius: 4px; /* 设置圆角效果 */
+  appearance: none; /* 去掉默认的样式 */
+  outline: none; /* 去掉焦点轮廓 */
+  background-color: #f9f9f9; /* 设置背景颜色 */
+  transition: background-color 0.3s, border-color 0.3s; /* 动画效果 */
+}
+
+/* 鼠标悬停效果 */
+.checkbox-group input[type="checkbox"]:hover {
+  border-color: #007bff; /* 鼠标悬停时改变边框颜色 */
+  background-color: #e6f7ff; /* 鼠标悬停时改变背景颜色 */
+}
+
+/* 选中状态 */
+.checkbox-group input[type="checkbox"]:checked {
+  background-color: #007bff; /* 选中时背景色 */
+  border-color: #007bff; /* 选中时边框颜色 */
+}
+
+/* 自定义勾选框样式 */
+.checkbox-group input[type="checkbox"]:checked::after {
+  content: '✔'; /* 添加勾选标志 */
+  color: white; /* 勾选标志的颜色 */
+  font-size: 12px; /* 勾选标志的字体大小 */
+  position: absolute;
+  top: 2px;
+  left: 4px;
+}
+
+/* 设置字体颜色，悬停时加点动画 */
+.checkbox-group input[type="checkbox"]:checked + span {
+  color: #007bff;
+  font-weight: bold;
+}
+
+/* 标签 hover 效果 */
+.checkbox-group label:hover {
+  color: #007bff; /* 鼠标悬停时文字颜色变化 */
+  transition: color 0.3s ease;
+}
 
 .login-wrapper {
   height: 100%;

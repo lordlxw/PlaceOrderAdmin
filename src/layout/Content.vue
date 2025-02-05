@@ -18,6 +18,7 @@ export default {
   },
   methods: {
     reload() {
+      console.log("redload")
       this.isRouterAlive = false
       this.$nextTick(function () {
         this.isRouterAlive = true

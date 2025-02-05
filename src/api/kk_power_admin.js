@@ -4,6 +4,8 @@ import request from "@/utils/request";
 export default {
   // 系统用户列表查询
   get(params) {
+    console.log("系统用户列表查询1")
+    console.log(`${Vue.prototype.$apiUrl}`)
     return request({
       url: `${Vue.prototype.$apiUrl}/system/user/list`,
       method: "get",
@@ -161,6 +163,8 @@ export default {
     });
   },
   getUserSummarys(params) {
+    console.log("获取getUserSummarys")
+    console.log(`${Vue.prototype.$apiUrl}`)
     return request({
       url: `${Vue.prototype.$apiUrl}/sys/summary`,
       method: "post",

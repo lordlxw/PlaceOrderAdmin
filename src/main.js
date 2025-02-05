@@ -24,10 +24,14 @@ Vue.use(ElementUI, {
 });
 Vue.component("title-bar", TitleBar);
 Vue.component(Layout.name, Layout);
-
 Vue.prototype.$apiUrl = process.env.BASE_API;
 Vue.prototype.$wsUrl = process.env.WS_URL;
 Vue.prototype.$appType = process.env.PROJECT_NAME;
+// 输出这三个变量
+console.log("API URL:", Vue.prototype.$apiUrl);
+console.log("WebSocket URL:", Vue.prototype.$wsUrl);
+console.log("App Type:", Vue.prototype.$appType);
+
 /* eslint-disable no-new */
 new Vue({
   el: "#app",

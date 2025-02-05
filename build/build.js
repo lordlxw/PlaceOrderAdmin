@@ -3,7 +3,7 @@ require('./check-versions')()
 // process.env.NODE_ENV = 'production'
 //process.env.NODE_ENV = process.argv.splice(2)[0] == 'test' ? 'testing' : 'production'
 const projectName = process.env.PROJECT_NAME
-console.log('客户端:', projectName)
+console.log('客户端ces:', projectName)
 
 const ora = require('ora')
 const rm = require('rimraf')

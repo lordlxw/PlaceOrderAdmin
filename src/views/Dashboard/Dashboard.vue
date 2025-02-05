@@ -83,6 +83,7 @@
 </template>
 
 <script>
+import Vue from 'vue';
 import * as echarts from 'echarts'
 import { commMixin } from '@/utils/commMixin'
 import ComUserSummary from '../components/ComUserSummary.vue'
@@ -154,8 +155,28 @@ export default {
 
     }
   },
-  created() {
-  },
+created() {
+    console.log("dashboard加载")
+      // 获取 apiUrl
+  const environment = this.$store.state.selectedEnvironment;
+   console.log("dashboard加载de environment")
+
+  console.log(environment)
+  if (environment === 'isSimulation') {
+  Vue.prototype.$apiUrl = 'https://simapi.quants.top';
+  Vue.prototype.$wsUrl = 'wss://simapi.quants.top/websocket';
+  Vue.prototype.$appType = '模拟';
+} else if (environment === 'isTesting') {
+  Vue.prototype.$apiUrl = 'https://apitest.quants.top';
+  Vue.prototype.$wsUrl = 'wss://apitest.quants.top/websocket';
+  Vue.prototype.$appType = '测试';
+} else if (environment === 'isUAT') {
+  Vue.prototype.$apiUrl = 'https://apiuat.quants.top';
+  Vue.prototype.$wsUrl = 'wss://apiuat.quants.top/websocket';
+  Vue.prototype.$appType = 'UAT';
+}
+  console.log("当前 dashboard加载的 apiUrl:", environment);
+},
   watch: {
     // eChartRadioA: {
     //   immediate: true, // 将立即以表达式的当前值触发回调

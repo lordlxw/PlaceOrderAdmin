@@ -1,25 +1,27 @@
 import Vue from "vue";
 import request from "@/utils/request";
 
-export default {
-  // 登录
-  login(params, agent, client) {
-    return request({
-      url: `${Vue.prototype.$apiUrl}/login`,
-      method: "post",
-      data: {
-        username: params.username,
-        password: params.password,
-        uuid: params.uuid,
-        code: params.code,
-        hwinfo: params.hwinfo
-      },
-      headers: {
-        Agent: agent,
-        Client: client,
-      }
-    });
-  },
+  export default {
+    // 登录
+    login(params, agent, client) {
+      const url = `${Vue.prototype.$apiUrl}/login`; // 构造 url
+      console.log("请求的 URL:", url); // 输出 url
+      return request({
+        url: `${Vue.prototype.$apiUrl}/login`,
+        method: "post",
+        data: {
+          username: params.username,
+          password: params.password,
+          uuid: params.uuid,
+          code: params.code,
+          hwinfo: params.hwinfo
+        },
+        headers: {
+          Agent: agent,
+          Client: client,
+        }
+      });
+    },
   // 权限
   auth() {
     return request({
@@ -44,6 +46,7 @@ export default {
     });
   },
   getProfile(userId) {
+    console.log(`${Vue.prototype.$apiUrl}/userProfile/userId/${userId}`); // 输出 url
     return request({
       url: `${Vue.prototype.$apiUrl}/userProfile/userId/${userId}`,
       method: "get"

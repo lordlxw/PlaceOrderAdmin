@@ -2,9 +2,8 @@ import Vue from "vue";
 import Vuex from "vuex";
 import config from "@/utils/config.js";
 import * as util from "@/utils/util.js";
-
+import createPersistedState from 'vuex-persistedstate';
 Vue.use(Vuex);
-
 const store = new Vuex.Store({
   state: {
     // 记录当前选中的tscode,刷新恢复使用
@@ -35,7 +34,8 @@ const store = new Vuex.Store({
     chatMessage: null,
     chatWorkOrder: null,
     socketMain: null,
-    socketKLine: null
+    socketKLine: null,
+    selectedEnvironment: '', // 保存选择的环境
   },
   getters: {
     getMenus(state) {
@@ -149,8 +149,67 @@ const store = new Vuex.Store({
       return state.winInfo;
     }
   },
+  plugins: [
+    createPersistedState({
+      storage: window.localStorage // 使用 localStorage 持久化
+    })
+  ],
   actions: {},
   mutations: {
+    //  根据checkbox选择不同环境，lxw，2025/02/05
+    SET_ENVIRONMENT(state, environment) {
+      console.log("environment");
+      console.log(environment);
+      state.selectedEnvironment = environment;
+      // 根据选择的环境设置不同的配置
+      // 根据checkbox选择不同环境，lxw，2025/02/05
+ // 根据选择的环境设置不同的配置
+
+   // 设置要发送给主进程的配置数据
+   let configData = {};
+
+   // 根据选择的环境设置不同的配置并准备发送到主进程
+   if (environment === 'isSimulation') {
+     configData = {
+       apiUrl: 'https://simapi.quants.top',
+       wsUrl: 'wss://simapi.quants.top/websocket',
+       appType: '模拟'
+     };
+   } else if (environment === 'isTesting') {
+     configData = {
+       apiUrl: 'https://apitest.quants.top',
+       wsUrl: 'wss://apitest.quants.top/websocket',
+       appType: '测试'
+     };
+   } else if (environment === 'isUAT') {
+     configData = {
+       apiUrl: 'https://apiuat.quants.top',
+       wsUrl: 'wss://apiuat.quants.top/websocket',
+       appType: 'UAT'
+     };
+   } else {
+     console.log("没有选择环境！！！")
+   }
+   
+ if (environment === 'isSimulation') {
+  Vue.prototype.$apiUrl = 'https://simapi.quants.top';
+  Vue.prototype.$wsUrl = 'wss://simapi.quants.top/websocket';
+  Vue.prototype.$appType = '模拟';
+} else if (environment === 'isTesting') {
+  Vue.prototype.$apiUrl = 'https://apitest.quants.top';
+  Vue.prototype.$wsUrl = 'wss://apitest.quants.top/websocket';
+  Vue.prototype.$appType = '测试';
+} else if (environment === 'isUAT') {
+  Vue.prototype.$apiUrl = 'https://apiuat.quants.top';
+  Vue.prototype.$wsUrl = 'wss://apiuat.quants.top/websocket';
+  Vue.prototype.$appType = 'UAT';
+} else {
+  console.log("没有选择环境！！！")
+}
+console.log("API URL:", Vue.prototype.$apiUrl);
+console.log("WebSocket URL:", Vue.prototype.$wsUrl);
+console.log("App Type:", Vue.prototype.$appType);
+},
     // 菜单收起与展开
     SET_IS_COLLAPSE(state, params) {
       state.isCollapse = params.isCollapse;

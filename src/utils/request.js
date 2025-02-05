@@ -12,6 +12,8 @@ const service = axios.create({
 
 service.interceptors.request.use(config => {
   try {
+    console.log("request.js输出config");
+    console.log(config);
     // console.log("get:" + localStorage.getItem(configUtil.keys.tokenKey));
     if (
       localStorage.getItem(configUtil.keys.tokenKey) &&
@@ -30,7 +32,7 @@ service.interceptors.request.use(config => {
 service.interceptors.response.use(
   response => {
     const resp = response.data;
-    // console.log(JSON.stringify(resp))
+    console.log(JSON.stringify(resp));
     switch (resp.code) {
       case 200:
       case "00000":
