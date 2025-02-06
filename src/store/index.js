@@ -164,33 +164,30 @@ const store = new Vuex.Store({
       // 根据选择的环境设置不同的配置
       // 根据checkbox选择不同环境，lxw，2025/02/05
  // 根据选择的环境设置不同的配置
-
    // 设置要发送给主进程的配置数据
-   let configData = {};
-
-   // 根据选择的环境设置不同的配置并准备发送到主进程
-   if (environment === 'isSimulation') {
-     configData = {
-       apiUrl: 'https://simapi.quants.top',
-       wsUrl: 'wss://simapi.quants.top/websocket',
-       appType: '模拟'
-     };
-   } else if (environment === 'isTesting') {
-     configData = {
-       apiUrl: 'https://apitest.quants.top',
-       wsUrl: 'wss://apitest.quants.top/websocket',
-       appType: '测试'
-     };
-   } else if (environment === 'isUAT') {
-     configData = {
-       apiUrl: 'https://apiuat.quants.top',
-       wsUrl: 'wss://apiuat.quants.top/websocket',
-       appType: 'UAT'
-     };
-   } else {
-     console.log("没有选择环境！！！")
-   }
-   
+  //  let configData = {};
+  //  // 根据选择的环境设置不同的配置并准备发送到主进程
+  //  if (environment === 'isSimulation') {
+  //    configData = {
+  //      apiUrl: 'https://simapi.quants.top',
+  //      wsUrl: 'wss://simapi.quants.top/websocket',
+  //      appType: '模拟'
+  //    };
+  //  } else if (environment === 'isTesting') {
+  //    configData = {
+  //      apiUrl: 'https://apitest.quants.top',
+  //      wsUrl: 'wss://apitest.quants.top/websocket',
+  //      appType: '测试'
+  //    };
+  //  } else if (environment === 'isUAT') {
+  //    configData = {
+  //      apiUrl: 'https://apiuat.quants.top',
+  //      wsUrl: 'wss://apiuat.quants.top/websocket',
+  //      appType: 'UAT'
+  //    };
+  //  } else {
+  //    console.log("没有选择环境！！！")
+  //  }
  if (environment === 'isSimulation') {
   Vue.prototype.$apiUrl = 'https://simapi.quants.top';
   Vue.prototype.$wsUrl = 'wss://simapi.quants.top/websocket';
