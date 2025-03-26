@@ -27,14 +27,14 @@
       <el-row class="board-echats">
         <el-col :span="24" style="background-color: #f0f0f0; padding: 20px;">
           <el-switch
-          style="margin-top: 20px"
+          style="margin-top: 20px; font-size: 38px;"
           v-model="switchValue"
           size="large"
           active-text="通道"
           inactive-text="个人"
         />
-          <button @click="applyDateRange">点击触发</button>
-          <div ref="main-chart" style="width: 100%; height: 400px;"></div>
+          <!-- <button @click="applyDateRange">点击触发</button> -->
+          <div ref="main-chart" style="width: 100%; height: 300px"></div>
 
         </el-col>
         <!-- <el-col :span="8">
@@ -73,13 +73,13 @@
       </el-row>
       <el-row class="board-user">
         <el-col :span="24">
-          <com-user-summary :height="userSummaryH" :searchParam="searchParam" @init="initChartB" :showDo="true"
+          <com-user-summary :height="310" :searchParam="searchParam" @init="initChartB" :showDo="true"
             @handleSelectionChange="userSummaryChange" :tableSelection="0"></com-user-summary>
         </el-col>
       </el-row>
       <el-row class="board-trans">
         <el-col :span="12">
-          <com-trans-history :height="710" :searchParam="searchParam" @init="initChartD"></com-trans-history>
+          <com-trans-history :height="700" :searchParam="searchParam" @init="initChartD"></com-trans-history>
         </el-col>
         <el-col :span="12">
           <div class="board-echats-box">
@@ -222,6 +222,7 @@ this.productGroups = this.products[0].id; // 默认选中第一项的 ID
       console.log("选中的产品名称:", selectedProduct.name);
 console.log("选中项", selectedProduct);
       this.channelId = selectedProduct.id;
+      this.applyDateRange();
       console.log("channelId====", this.channelId);
     }
   },
@@ -404,10 +405,10 @@ console.log("ProductGroups", this.productGroups);
           (!this.searchParam.userIds || this.searchParam.userIds.length === 0)
         ) {
           console.warn("交易员为空");
-          this.$message({
-        message: "请至少选择一名交易员",
-        type: "warning",
-      });
+      //     this.$message({
+      //   message: "请至少选择一名交易员",
+      //   type: "warning",
+      // });
           return;
         }
         // 使用 await 获取请求结果，改为异步调用
@@ -911,9 +912,9 @@ console.log("ProductGroups", this.productGroups);
     }, 300)
     const end = new Date();
     const start = new Date();
-    start.setTime(start.getTime() - 3600 * 1000 * 24 * 30);
+    start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
     this.searchParam.date = [start, end]
-    this.initFrameH('userSummaryH', 700)
+    this.initFrameH('userSummaryH', 300)
     // this.$winResize(() => {
     //   this.eChartA && this.eChartA.resize()
     //   this.eChartB && this.eChartB.resize()
@@ -923,9 +924,9 @@ console.log("ProductGroups", this.productGroups);
     //   this.initFrameH('userSummaryH', 700)
     // })
     this.myChart = echarts.init(this.$refs['main-chart']);
-    setTimeout(() => {
-    this.applyDateRange();
-  }, 2000);
+  //   setTimeout(() => {
+  //   this.applyDateRange();
+  // }, 2000);
   },
 }
 </script>
