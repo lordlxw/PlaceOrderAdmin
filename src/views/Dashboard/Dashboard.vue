@@ -10,7 +10,7 @@
               <el-col :span="12">
                 <el-radio-group v-model="productGroups" size="small" v-if="setAuth('system:alltrans:query')">
                   <el-radio-button v-for="product in products" :label="product.id" :key="product.id"
-                    :disabled="product.id === 2">{{ product.name
+                    >{{ product.name
                     }}</el-radio-button>
                 </el-radio-group>
               </el-col>
@@ -25,7 +25,19 @@
         </el-col>
       </el-row>
       <el-row class="board-echats">
-        <el-col :span="8">
+        <el-col :span="24" style="background-color: #f0f0f0; padding: 20px;">
+          <el-switch
+          style="margin-top: 20px"
+          v-model="switchValue"
+          size="large"
+          active-text="通道"
+          inactive-text="个人"
+        />
+          <button @click="applyDateRange">点击触发</button>
+          <div ref="main-chart" style="width: 100%; height: 400px;"></div>
+
+        </el-col>
+        <!-- <el-col :span="8">
           <div class="board-echats-box">
             <div ref="chartA" class="chart"></div>
             <div class="chartA-btn">
@@ -57,7 +69,7 @@
               </div>
             </div>
           </el-col>
-        </template>
+        </template> -->
       </el-row>
       <el-row class="board-user">
         <el-col :span="24">
@@ -91,6 +103,7 @@ import ComTransHistory from '../components/ComTransHistory.vue'
 import AccountRiskControl from '@/components/AccountRiskControl.vue';
 import * as util from "@/utils/util";
 import { pageMixin } from '@/utils/pageMixin'
+import api from '@/api/Statistic.js';
 export default {
   mixins: [commMixin, pageMixin],
   components: {
@@ -143,16 +156,12 @@ export default {
         date: ["", ""],
         userIds: []
       },
-      products: [{
-        id: 1,
-        name: '权益一号'
-      }, {
-        id: 2,
-        name: '权益二号'
-      }],
-      productGroups: 1,
-      child: false
-
+      products: [],
+      productGroups: {},
+      channelId: "",
+      switchValue: false,
+      child: false,
+      myChart: {}
     }
   },
 created() {
@@ -176,6 +185,18 @@ created() {
   Vue.prototype.$appType = 'UAT';
 }
   console.log("当前 dashboard加载的 apiUrl:", environment);
+
+  api.getChannels().then(channels => {
+  console.log("channel123", channels);
+  // 使用从API获取的值来构建 products 数组
+this.products = channels.value.map((item, index) => ({
+  id: item.id,
+  name: item.qtName
+}));
+this.productGroups = this.products[0].id; // 默认选中第一项的 ID
+}).catch(error => {
+  console.error("Error fetching channels:", error);
+});
 },
   watch: {
     // eChartRadioA: {
@@ -185,14 +206,246 @@ created() {
     //   },
     //   deep: true,
     // },
+     // 监听 productGroups 的变化
+     switchValue(newValue) {
+      console.log("按键切换", newValue);
+      this.applyDateRange();
+    },
+     productGroups(newVal) {
+      // 根据新的选中值获取对应的产品信息
+      const selectedProduct = this.products.find(
+        (product) => product.id === newVal
+      );
+
+      // 输出选中的产品ID和名称
+      console.log("选中的产品ID:", selectedProduct.id);
+      console.log("选中的产品名称:", selectedProduct.name);
+console.log("选中项", selectedProduct);
+      this.channelId = selectedProduct.id;
+      console.log("channelId====", this.channelId);
+    }
   },
   methods: {
+// 初始化盈亏比/胜率
+initChart(winRateData, profitLossData, smoothLine) {
+      console.log("胜率数据111:", winRateData);
+      console.log("盈亏比数据222:", profitLossData);
+
+      // X轴交易员姓名
+      let traderNames = winRateData.map((d) => d.index);
+
+      // 胜率数据（转换为百分比）
+      let winRates = winRateData.map((d) => d.shenglv * 100);
+
+      // 盈亏比数据
+      let profitLossRatios = profitLossData.map((d) => d.yingkuibi);
+
+      // 盈亏值数据
+      let profits = profitLossData.map((d) => d.ying); // 盈
+      let losses = profitLossData.map((d) => d.kui); // 亏
+
+      // 胜、平、败数据
+      let wins = winRateData.map((d) => d.sheng);
+      let draws = winRateData.map((d) => d.ping);
+      let fails = winRateData.map((d) => d.bai);
+
+      console.log("输出myChart", this.myChart)
+      // 清空现有配置
+      this.myChart.clear();
+
+      let option = {
+        title: { text: "交易胜率 & 盈亏比", left: "center" },
+        tooltip: {
+          trigger: "axis",
+          formatter: function (params) {
+            let index = params[0].dataIndex;
+            let trader = params[0].axisValue;
+            let win = wins[index];
+            let draw = draws[index];
+            let fail = fails[index];
+            let winRate = winRates[index];
+            let profitLossRatio = profitLossRatios[index];
+            let profit = profits[index];
+            let loss = losses[index];
+
+            return `
+                    <b>${trader}</b><br/>
+                    胜: ${win} 场 | 平: ${draw} 场 | 败: ${fail} 场<br/>
+                    胜率: ${winRate.toFixed(2)}%<br/>
+                    盈亏比: ${profitLossRatio.toFixed(2)}<br/>
+                    盈: ${profit} | 亏: ${loss}
+                `;
+          },
+        },
+        legend: {
+          data: ["胜率(%)", "盈亏比", "盈", "亏"],
+          top: "12%",
+          zIndex: 100,
+        },
+        grid: {
+          left: "15%",
+          right: "15%",
+          bottom: "15%",
+          containLabel: true,
+        },
+        xAxis: {
+          type: "category",
+          data: traderNames,
+          axisLabel: {
+            interval: 0,
+            fontSize: 12,
+          },
+        },
+        yAxis: [
+          {
+            type: "value",
+            name: "胜率 (%) / 盈亏值",
+            min: 0,
+            max: 100,
+            axisLabel: { formatter: "{value} %" },
+          },
+          {
+            type: "value",
+            name: "盈亏比",
+            min: 0,
+            axisLabel: { formatter: "{value}" },
+          },
+        ],
+        series: [
+          {
+            name: "胜率(%)",
+            type: "bar",
+            yAxisIndex: 0,
+            data: winRates,
+            color: "#2196F3",
+            barWidth: "20%",
+            label: { show: true, position: "top", formatter: "{c}%" },
+          },
+          {
+            name: "盈",
+            type: "bar",
+            yAxisIndex: 0,
+            data: profits,
+            color: "#4CAF50",
+            barWidth: "20%",
+            label: { show: true, position: "top" },
+          },
+          {
+            name: "亏",
+            type: "bar",
+            yAxisIndex: 0,
+            data: losses,
+            color: "#F44336",
+            barWidth: "20%",
+            label: { show: true, position: "top" },
+          },
+          {
+            name: "盈亏比",
+            type: "line",
+            yAxisIndex: 1,
+            data: profitLossRatios,
+            color: "#FF9800",
+            lineStyle: { width: 3 },
+            symbol: "circle",
+            symbolSize: 8,
+            smooth: smoothLine,
+            label: { show: true, position: "top" },
+          },
+        ],
+      };
+
+      this.myChart.setOption(option);
+    },
+    async applyDateRange() {
+      console.log("输出搜索参数", this.searchParam)
+      const dates = this.searchParam.date || [];
+
+const [startDate, endDate] = dates.map(date => {
+  if (typeof date === "string") {
+    return date.split("T")[0]; // 如果是字符串，直接格式化
+  } else if (date instanceof Date) {
+    return date.toISOString().split("T")[0]; // 如果是 Date 对象，转换为 ISO 格式后再处理
+  } else {
+    return ""; // 处理空值
+  }
+});
+console.log("applyDateRange---输出channel", this.channelId)
+console.log("StartDay:", startDate);
+console.log("EndDay:", endDate);
+console.log("ProductGroups", this.productGroups);
+      // 提取并格式化日期
+// const [startDate, endDate] = this.searchParam.date.map(date => date.split("T")[0]);
+// console.log("StartDay", startDate);
+// console.log("EndDay", endDate);
+
+      try {
+        console.log("是否切换", this.switchValue);
+        console.log("你好呀");
+        console.log("开始日期:", startDate);
+        console.log("结束日期:", endDate);
+
+        // 直接修改 searchParam.date，不重新赋值整个对象
+        // this.searchParam.date = [startDate, endDate];
+        console.log("applyDateRange222", this.searchParam);
+        // 根据 switchValue 改变 weidu 的值
+        const weiduValue = this.switchValue ? "channel" : "person";
+        // 定义请求参数
+        const params = {
+          endDate: endDate,
+          startDate: startDate,
+          weidu: weiduValue,
+          userIds: this.searchParam.userIds,
+          channelIds: Array.isArray(this.channelId) ? this.channelId : [this.channelId],
+        };
+        console.log("输出params", params);
+
+        if (
+          weiduValue === "person" &&
+          (!this.searchParam.userIds || this.searchParam.userIds.length === 0)
+        ) {
+          console.warn("交易员为空");
+          this.$message({
+        message: "请至少选择一名交易员",
+        type: "warning",
+      });
+          return;
+        }
+        // 使用 await 获取请求结果，改为异步调用
+        const [winRateResponse, profitLossResponse] = await Promise.all([
+          api.getWindRate(params), // 请求胜率数据
+          api.getYingKui1(params), // 请求盈亏比数据
+        ]);
+        console.log("胜率数据:", winRateResponse);
+        console.log("盈亏比数据:", profitLossResponse);
+
+        if (
+          winRateResponse.code === "00000" &&
+          profitLossResponse.code === "00000"
+        ) {
+          console.log("返回的都是00000");
+          console.log("winRateResponse", winRateResponse);
+          console.log("profitLossResponse", profitLossResponse);
+          this.initChart(winRateResponse.value, profitLossResponse.value, true);
+        } else {
+          console.error(
+            "API 返回错误:",
+            winRateResponse.code,
+            profitLossResponse.code
+          );
+        }
+      } catch (error) {
+        console.error("获取数据失败:", error);
+      }
+    },
     userSummaryChange(rows) {
       // this.initChartB
+      console.log("userSummaryChange", rows)
       const userIds = rows.map(n => n.userId);
       if (JSON.stringify(this.searchParam.userIds) !== JSON.stringify(userIds)) {
         this.searchParam.userIds = rows.map(n => n.userId)
       }
+
+      this.applyDateRange();
     },
     initChartA(data) {
       this.initChartDataA = data;
@@ -644,6 +897,7 @@ created() {
       // }
     },
   },
+
   mounted() {
     if (window.v1) {
       Promise.all([]).then(async () => {
@@ -660,14 +914,18 @@ created() {
     start.setTime(start.getTime() - 3600 * 1000 * 24 * 30);
     this.searchParam.date = [start, end]
     this.initFrameH('userSummaryH', 700)
-    this.$winResize(() => {
-      this.eChartA && this.eChartA.resize()
-      this.eChartB && this.eChartB.resize()
-      this.eChartC && this.eChartC.resize()
-      this.eChartD && this.eChartD.resize()
-      this.eChartE && this.eChartE.resize()
-      this.initFrameH('userSummaryH', 700)
-    })
+    // this.$winResize(() => {
+    //   this.eChartA && this.eChartA.resize()
+    //   this.eChartB && this.eChartB.resize()
+    //   this.eChartC && this.eChartC.resize()
+    //   this.eChartD && this.eChartD.resize()
+    //   this.eChartE && this.eChartE.resize()
+    //   this.initFrameH('userSummaryH', 700)
+    // })
+    this.myChart = echarts.init(this.$refs['main-chart']);
+    setTimeout(() => {
+    this.applyDateRange();
+  }, 2000);
   },
 }
 </script>

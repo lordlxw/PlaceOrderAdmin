@@ -66,7 +66,8 @@ export default {
       rewardBuyVolume: "",
       rewardSaleVolume: "",
       rewardFloatProfit: "",
-      multipleSelection: []
+      multipleSelection: [],
+      initOnce: false
     };
   },
   computed: {
@@ -91,6 +92,10 @@ export default {
     },
   },
   methods: {
+    chooseAll() {
+      console.log("执行全选");
+      this.$refs.multipleTable.toggleAllSelection();
+    },
     handleSelectionChange(val) {
       // 默认多选
       if (this.tableSelection === 0) {
@@ -169,6 +174,15 @@ export default {
               this.$refs.multipleTable.toggleRowSelection(n, true);
             })
           });
+
+          if (!this.initOnce) {
+              this.initOnce = true;
+              console.log("initOnce");
+              this.$nextTick(() => {
+                // 执行全选
+                this.chooseAll();
+              });
+            }
           console.log(this.multipleSelection)
           this.$emit("init", this.tableData)
         } else {
@@ -179,6 +193,7 @@ export default {
           });
         }
         this.loading = false;
+        this.chooseAll();
       })
     },
     // 更新记录表
