@@ -924,6 +924,14 @@ console.log("ProductGroups", this.productGroups);
     //   this.initFrameH('userSummaryH', 700)
     // })
     this.myChart = echarts.init(this.$refs['main-chart']);
+     // 窗口大小变化时触发
+  this.$winResize(() => {
+    // 调整图表大小
+    this.myChart.resize();
+console.log("窗口改变大小");
+    // 调整其他布局的高度（如果有）
+    this.initFrameH('userSummaryH', 700);
+  });
   //   setTimeout(() => {
   //   this.applyDateRange();
   // }, 2000);
