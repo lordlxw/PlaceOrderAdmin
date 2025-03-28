@@ -25,7 +25,7 @@
         </el-col>
       </el-row>
       <el-row class="board-echats">
-        <el-col :span="24" style="background-color: #f0f0f0; padding: 20px;">
+        <el-col :span="24" style="background-color: #f0f0f0; padding: 20px;margin-left: 2px;">
           <el-switch
           style="margin-top: 20px; font-size: 38px;"
           v-model="switchValue"
@@ -960,6 +960,8 @@ console.log("窗口改变大小");
   }
 
   .board-echats {
+    margin-left: 10px;
+    margin-right: 10px;
     .board-echats-box {
       height: 350px;
       background: white;

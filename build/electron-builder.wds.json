@@ -7,11 +7,19 @@
     "icon": "static/favicon.ico"
   },
   "win": {
-    "icon": "static/favicon.ico"
+    "target": "nsis",
+    "icon": "static/favicon.ico",
+    "artifactName": "${productName}-${version}-${arch}.${ext}"
   },
   "nsis": {
     "oneClick": false,
-    "allowToChangeInstallationDirectory": true
+    "allowToChangeInstallationDirectory": true,
+    "installerIcon": "static/favicon.ico",
+    "uninstallerIcon": "static/favicon.ico",
+    "installerHeaderIcon": "static/favicon.ico",
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true,
+    "shortcutName": "Lily管理系统"
   },
   "files": [
     "dist/**/*",
@@ -19,7 +27,7 @@
     "background.js"
   ],
   "directories": {
-    "buildResources": "assets",
+    "buildResources": "assets",  
     "output": "dist_electron/wds"
   }
 }
