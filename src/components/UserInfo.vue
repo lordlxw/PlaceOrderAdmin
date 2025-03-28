@@ -1,4 +1,7 @@
 <template>
+    <div>
+     <!-- <h1>你好啊</h1>
+     <el-tag v-if="appType" class="env-label" type="info">{{ appType }}</el-tag> -->
     <el-card class="box-card">
         <div slot="header" class="clearfix">
             <span>用户基本信息</span>
@@ -52,19 +55,29 @@
                         </el-row>
                     </div>
                 </el-col>
-                <!-- <el-col :span="6">
-                    <div class="user-actions">
-                        <el-button type="primary" size="small">编辑信息</el-button>
-                        <el-button type="danger" size="small">删除用户</el-button>
-                    </div>
-                </el-col> -->
             </el-row>
         </div>
     </el-card>
+</div>
 </template>
 
 <script>
 export default {
+    computed: {
+    appType() {
+        const environment = this.$store.state.selectedEnvironment;
+        console.log("dashboard加载的 environment:", environment);
+        if (environment === 'isSimulation') {
+            return '模拟';
+        } else if (environment === 'isTesting') {
+            return '测试';
+        } else if (environment === 'isUAT') {
+            return 'UAT';
+        } else {
+            return '';
+        }
+    }
+},
     props: {
         userInfo: {
             type: Object,

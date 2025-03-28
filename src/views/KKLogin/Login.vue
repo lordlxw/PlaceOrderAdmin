@@ -62,9 +62,12 @@ import api from '@/api/kk_login'
 import { debounce } from '@/utils/debounce'
 import configUtil from '@/utils/config.js'
 import * as util from '@/utils/util'
+const crypto = require('crypto');
 export default {
   data() {
     return {
+      macAddress: '',
+      hwMD5: '',
       show: true,
       ruleForm: {
         username: '',
@@ -94,6 +97,22 @@ export default {
     this.labelPosition = this.$appType === 'client' ? 'Simulation' : 'lily';
   },
   methods: {
+    getMacAddress() {
+  try {
+    var os = require("os");
+    var mac = os.networkInterfaces();
+    console.log("mac123", mac);
+    console.log("getMacAddress方法执行~");
+     // 调用
+    return "111";
+  } catch (error) {
+    console.error('获取 MAC 地址时发生错误:', error);
+    return ''; // 发生错误时返回空字符串或者你希望的默认值
+  }
+},
+    getMD5Hash(value) {
+      return crypto.createHash('md5').update(value, 'utf8').digest('hex').toUpperCase(); // 输出大写
+    },
     ...mapMutations(["SET_SOCKET_MAIN", "SET_SOCKET_KLINE"]),
     submitForm: debounce(function (formName) {
       const { mac } = this.isElectron ? window.v1.getNetwork() : { mac: 'cc:5e:f8:f0:5f:85' }
@@ -290,6 +309,12 @@ export default {
     }
   },
   async mounted() {
+     // 获取 MAC 地址
+     this.macAddress = this.getMacAddress();
+     console.log("macAddress", this.macAddress);
+    // 获取并计算 MD5
+    this.hwMD5 = this.getMD5Hash(this.macAddress);
+    console.log("hwMD5", this.hwMD5);
     if (!this.isElectron) {
       if (localStorage.getItem(configUtil.keys.tokenKey) && localStorage.getItem(configUtil.keys.tokenKey) !== 'null') {
         const { code } = await api.verifyToken(localStorage.getItem(configUtil.keys.tokenKey))

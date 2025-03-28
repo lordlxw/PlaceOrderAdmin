@@ -7,6 +7,9 @@
             <user-Info :showInfo="false" :userInfo="userInfo"></user-Info>
             <i slot="reference" class="el-icon-user-solid noDrag txt-white left_bar"></i>
           </el-popover>
+           <!-- 增加左边距，防止 label 与 userInfo 图标重叠 -->
+  <span class="env-label">{{ appType }}</span>
+            <!-- 用户信息 -->
           <!-- <i class="el-icon-user-solid noDrag txt-white left_bar"></i> -->
           <!-- <span class="left_span">{{ userInfo.userName }}</span> -->
         </div>
@@ -56,6 +59,19 @@ export default {
   },
   mixins: [pageMixin, commMixin],
   computed: {
+    appType() {
+        const environment = this.$store.state.selectedEnvironment;
+        console.log("dashboard加载的 environment:", environment);
+        if (environment === 'isSimulation') {
+            return '模拟';
+        } else if (environment === 'isTesting') {
+            return '测试';
+        } else if (environment === 'isUAT') {
+            return 'UAT';
+        } else {
+            return '';
+        }
+    },
     ...mapState({
       asideLeftWidth: state => state.asideLeftWidth,
       isCollapse: state => state.isCollapse,
@@ -155,6 +171,15 @@ export default {
 </script>
 <style lang="scss" scoped>
 @import "@/assets/css/style.scss";
+.env-label {
+  background-color: #409eff; /* 蓝色背景 */
+  color: white; /* 文字颜色 */
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: bold;
+  margin-left: 10px; /* 左边距，防止重叠 */
+}
 
 .height100percent {
   height: 100%;
