@@ -3,6 +3,12 @@ import request from "@/utils/request";
 import Vue from "vue";
 
 export default {
+  getChannels() {
+    return request({
+      url: `${Vue.prototype.$apiUrl}/channel`,
+      method: "get",
+    });
+  },
   // 获取胜率
   getWindRate(params) {
     return request({
@@ -48,12 +54,95 @@ export default {
     });
   },
 
-  getChannels() {
-    return request({
-      url: `${Vue.prototype.$apiUrl}/channel`,
-      method: "get",
-    });
-  },
+    // 获取"期初盈亏"
+    getInitialProfitAndLoss(params) {
+      return request({
+        url: `${Vue.prototype.$apiUrl}/statistic/initialProfit`,
+        method: "post",
+        data: {
+          startDate: params.startDate,
+          endDate: params.endDate,
+          userIds: params.userIds,
+          channelIds: params.channelIds,
+          weidu: params.weidu,
+        },
+      });
+    },
+
+     // 获取"单日最大盈利及回撤"
+     getDailyMaxProfitAndDrawdown(params) {
+      return request({
+        url: `${Vue.prototype.$apiUrl}/statistic/maxprofitbydate`,
+        method: "post",
+        data: {
+          startDate: params.startDate,
+          endDate: params.endDate,
+          userIds: params.userIds,
+          channelIds: params.channelIds,
+          weidu: params.weidu,
+        },
+      });
+    },
+
+      // 获取"单笔最大盈利和亏损"
+      getMaxProfitByTrade(params) {
+        return request({
+          url: `${Vue.prototype.$apiUrl}/statistic/maxprofitbytrade`,
+          method: "post",
+          data: {
+            startDate: params.startDate,
+            endDate: params.endDate,
+            userIds: params.userIds,
+            channelIds: params.channelIds,
+            weidu: params.weidu,
+          },
+        });
+      },
+
+      // 获取"区间收益率"
+      getRangeEarningRate(params) {
+        return request({
+          url: `${Vue.prototype.$apiUrl}/statistic/rangeEarningRate`,
+          method: "post",
+          data: {
+            startDate: params.startDate,
+            endDate: params.endDate,
+            userIds: params.userIds,
+            channelIds: params.channelIds,
+            weidu: params.weidu,
+          },
+        });
+      },
+
+      // 获取"区间盈亏"
+      getRangeProfit(params) {
+        return request({
+          url: `${Vue.prototype.$apiUrl}/statistic/rangeProfit`,
+          method: "post",
+          data: {
+            startDate: params.startDate,
+            endDate: params.endDate,
+            userIds: params.userIds,
+            channelIds: params.channelIds,
+            weidu: params.weidu,
+          },
+        });
+      },
+
+      // 获取"年化收益率"
+      getYearEarningRate(params) {
+        return request({
+          url: `${Vue.prototype.$apiUrl}/statistic/yearEarningRate`,
+          method: "post",
+          data: {
+            startDate: params.startDate,
+            endDate: params.endDate,
+            userIds: params.userIds,
+            channelIds: params.channelIds,
+            weidu: params.weidu,
+          },
+        });
+      }
 };
 
 // **关键修正点**
