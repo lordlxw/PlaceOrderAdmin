@@ -1,23 +1,43 @@
 <template>
   <div class="content">
-    <title-bar v-if="child">
-    </title-bar>
+    <title-bar v-if="child"> </title-bar>
     <div class="content custom-scrollbar">
       <el-row class="board-header">
         <el-col :span="24">
           <div class="do">
             <el-row>
               <el-col :span="12">
-                <el-radio-group v-model="productGroups" size="small" v-if="setAuth('system:alltrans:query')">
-                  <el-radio-button v-for="product in products" :label="product.id" :key="product.id"
-                    >{{ product.name
-                    }}</el-radio-button>
+                <el-radio-group
+                  v-model="productGroups"
+                  size="small"
+                  v-if="setAuth('system:alltrans:query')"
+                >
+                  <el-radio-button
+                    v-for="product in products"
+                    :label="product.id"
+                    :key="product.id"
+                    >{{ product.name }}</el-radio-button
+                  >
                 </el-radio-group>
               </el-col>
-              <el-col :span="setAuth('system:alltrans:query') ? 12 : 24" class="text-right">
-                <el-date-picker v-model="searchParam.date" type="daterange" align="right" unlink-panels
-                  :clearable="false" range-separator="至" start-placeholder="开始日期" end-placeholder="结束日期"
-                  value-format="yyyy-MM-dd" :picker-options="pickerOptions">
+              <el-col
+                :span="setAuth('system:alltrans:query') ? 12 : 24"
+                class="text-right"
+              >
+                <el-date-picker
+                  v-model="searchParam.date"
+                  type="daterange"
+                  align="right"
+                  unlink-panels
+                  :clearable="false"
+                  range-separator="至"
+                  start-placeholder="开始日期"
+                  end-placeholder="结束日期"
+                  value-format="yyyy-MM-dd"
+                  :picker-options="pickerOptions"
+                  style="font-size: 16px; font-weight: bold; height: 40px; width: 300px;"
+                  popper-class="custom-date-picker"
+                >
                 </el-date-picker>
               </el-col>
             </el-row>
@@ -25,61 +45,63 @@
         </el-col>
       </el-row>
       <el-row class="board-echats">
-        <el-col :span="24" style="background-color: #f0f0f0; padding: 20px;margin-left: 2px;">
-          <el-switch
-          style="margin-top: 20px; font-size: 38px;"
-          v-model="switchValue"
-          size="large"
-          active-text="通道"
-          inactive-text="个人"
-        />
-          <!-- <button @click="applyDateRange">点击触发</button> -->
-          <div ref="main-chart" style="width: 100%; height: 300px"></div>
+        <el-col :span="24" style="background-color: #f0f0f0; padding: 20px;">
+          <!-- 上方：切换 + 单选按钮在一行 -->
+          <div style="display: flex; align-items: center; margin-bottom: 20px;">
+            <!-- 左侧：切换 -->
+            <div style="flex: 0 0 auto;">
+              <el-switch
+                v-model="switchValue"
+                size="large"
+                active-text="通道"
+                inactive-text="个人"
+                style="font-size: 20px;"
+              />
+            </div>
 
-        </el-col>
-        <!-- <el-col :span="8">
-          <div class="board-echats-box">
-            <div ref="chartA" class="chart"></div>
-            <div class="chartA-btn">
-              <el-radio-group v-model="eChartRadioA" size="mini" @change="initChartA(initChartDataA)">
-                <el-radio-button :label="0">交易量</el-radio-button>
-                <el-radio-button :label="1">交易笔数</el-radio-button>
+            <!-- 中间撑开并居中：用 position:absolute + relative 方法 -->
+            <div style="position: relative; flex-grow: 1; text-align: center;">
+              <el-radio-group
+                v-model="activeTabs"
+                @change="handleTabsChange"
+                size="large"
+              >
+                <el-radio-button label="performance">交易表现</el-radio-button>
+                <el-radio-button label="capital">资金情况</el-radio-button>
+                <el-radio-button label="returns">收益表现</el-radio-button>
               </el-radio-group>
             </div>
+
+            <!-- 右侧占位（空） -->
+            <div style="flex: 0 0 auto; width: 60px;">
+              <!-- 可以加搜索按钮啥的 -->
+            </div>
           </div>
+
+          <!-- 主图表 -->
+          <div ref="mainChart" style="width: 100%; height: 400px;"></div>
         </el-col>
-        <template v-if="setAuth('system:alltrans:query')">
-          <el-col :span="8">
-            <div class="board-echats-box" v-if="setAuth('system:alltrans:query')">
-              <div ref="chartB" class="chart"></div>
-            </div>
-          </el-col>
-          <el-col :span="8">
-            <div class="board-echats-box" v-if="setAuth('system:alltrans:query')">
-              <div ref="chartC" class="chart"></div>
-            </div>
-          </el-col>
-        </template>
-        <template v-else>
-          <el-col :span="16">
-            <div class="board-echats-box">
-              <div class="pd10">
-                <account-risk-control
-                  :userId="searchParam.userIds.length > 0 ? searchParam.userIds[0] : ''"></account-risk-control>
-              </div>
-            </div>
-          </el-col>
-        </template> -->
       </el-row>
+
       <el-row class="board-user">
         <el-col :span="24">
-          <com-user-summary :height="310" :searchParam="searchParam" @init="initChartB" :showDo="true"
-            @handleSelectionChange="userSummaryChange" :tableSelection="0"></com-user-summary>
+          <com-user-summary
+            :height="310"
+            :searchParam="searchParam"
+            @init="initChartB"
+            :showDo="true"
+            @handleSelectionChange="userSummaryChange"
+            :tableSelection="0"
+          ></com-user-summary>
         </el-col>
       </el-row>
       <el-row class="board-trans">
         <el-col :span="12">
-          <com-trans-history :height="700" :searchParam="searchParam" @init="initChartD"></com-trans-history>
+          <com-trans-history
+            :height="700"
+            :searchParam="searchParam"
+            @init="initChartD"
+          ></com-trans-history>
         </el-col>
         <el-col :span="12">
           <div class="board-echats-box">
@@ -95,15 +117,16 @@
 </template>
 
 <script>
-import Vue from 'vue';
-import * as echarts from 'echarts'
-import { commMixin } from '@/utils/commMixin'
-import ComUserSummary from '../components/ComUserSummary.vue'
-import ComTransHistory from '../components/ComTransHistory.vue'
-import AccountRiskControl from '@/components/AccountRiskControl.vue';
+import Vue from "vue";
+import * as echarts from "echarts";
+import { commMixin } from "@/utils/commMixin";
+import ComUserSummary from "../components/ComUserSummary.vue";
+import ComTransHistory from "../components/ComTransHistory.vue";
+import AccountRiskControl from "@/components/AccountRiskControl.vue";
 import * as util from "@/utils/util";
-import { pageMixin } from '@/utils/pageMixin'
-import api from '@/api/Statistic.js';
+import { pageMixin } from "@/utils/pageMixin";
+import api from "@/api/Statistic.js";
+import { debounce } from "@/utils/debounce";
 export default {
   mixins: [commMixin, pageMixin],
   components: {
@@ -123,31 +146,35 @@ export default {
       eChartE: null,
       userSummaryH: 0,
       pickerOptions: {
-        shortcuts: [{
-          text: '最近一周',
-          onClick(picker) {
-            const end = new Date();
-            const start = new Date();
-            start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
-            picker.$emit('pick', [start, end]);
+        shortcuts: [
+          {
+            text: "最近一周",
+            onClick(picker) {
+              const end = new Date();
+              const start = new Date();
+              start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
+              picker.$emit("pick", [start, end]);
+            }
+          },
+          {
+            text: "最近一个月",
+            onClick(picker) {
+              const end = new Date();
+              const start = new Date();
+              start.setTime(start.getTime() - 3600 * 1000 * 24 * 30);
+              picker.$emit("pick", [start, end]);
+            }
+          },
+          {
+            text: "最近三个月",
+            onClick(picker) {
+              const end = new Date();
+              const start = new Date();
+              start.setTime(start.getTime() - 3600 * 1000 * 24 * 90);
+              picker.$emit("pick", [start, end]);
+            }
           }
-        }, {
-          text: '最近一个月',
-          onClick(picker) {
-            const end = new Date();
-            const start = new Date();
-            start.setTime(start.getTime() - 3600 * 1000 * 24 * 30);
-            picker.$emit('pick', [start, end]);
-          }
-        }, {
-          text: '最近三个月',
-          onClick(picker) {
-            const end = new Date();
-            const start = new Date();
-            start.setTime(start.getTime() - 3600 * 1000 * 24 * 90);
-            picker.$emit('pick', [start, end]);
-          }
-        }],
+        ],
         disabledDate(time) {
           return time.getTime() > Date.now();
         }
@@ -161,43 +188,51 @@ export default {
       channelId: "",
       switchValue: false,
       child: false,
-      myChart: {}
-    }
+      myChart: {},
+      activeTabs: "performance", // 默认选中 "交易表现"，也可以改为空 []
+      currentChartConfig: "tradingPerformance",
+      ApiParams: {}, // 示例，获取“交易表现”配置
+      // 你的其他 data 属性...
+      loadChartDataCallCount: 0 // 新增一个计数器
+    };
   },
-created() {
-    console.log("dashboard加载")
-      // 获取 apiUrl
-  const environment = this.$store.state.selectedEnvironment;
-   console.log("dashboard加载de environment")
+  created() {
+    console.log("dashboard加载");
+    // 获取 apiUrl
+    const environment = this.$store.state.selectedEnvironment;
+    console.log("dashboard加载de environment");
 
-  console.log(environment)
-  if (environment === 'isSimulation') {
-  Vue.prototype.$apiUrl = 'https://simapi.quants.top';
-  Vue.prototype.$wsUrl = 'wss://simapi.quants.top/websocket';
-  Vue.prototype.$appType = '模拟';
-} else if (environment === 'isTesting') {
-  Vue.prototype.$apiUrl = 'https://apitest.quants.top';
-  Vue.prototype.$wsUrl = 'wss://apitest.quants.top/websocket';
-  Vue.prototype.$appType = '测试';
-} else if (environment === 'isUAT') {
-  Vue.prototype.$apiUrl = 'https://apiuat.quants.top';
-  Vue.prototype.$wsUrl = 'wss://apiuat.quants.top/websocket';
-  Vue.prototype.$appType = 'UAT';
-}
-  console.log("当前 dashboard加载的 apiUrl:", environment);
+    console.log(environment);
+    if (environment === "isSimulation") {
+      Vue.prototype.$apiUrl = "https://simapi.quants.top";
+      Vue.prototype.$wsUrl = "wss://simapi.quants.top/websocket";
+      Vue.prototype.$appType = "模拟";
+    } else if (environment === "isTesting") {
+      Vue.prototype.$apiUrl = "https://apitest.quants.top";
+      Vue.prototype.$wsUrl = "wss://apitest.quants.top/websocket";
+      Vue.prototype.$appType = "测试";
+    } else if (environment === "isUAT") {
+      Vue.prototype.$apiUrl = "https://apiuat.quants.top";
+      Vue.prototype.$wsUrl = "wss://apiuat.quants.top/websocket";
+      Vue.prototype.$appType = "UAT";
+    }
+    console.log("当前 dashboard加载的 apiUrl:", environment);
 
-  api.getChannels().then(channels => {
-  console.log("channel123", channels);
-  // 使用从API获取的值来构建 products 数组
-this.products = channels.value.map((item, index) => ({
-  id: item.id,
-  name: item.qtName
-}));
-this.productGroups = this.products[0].id; // 默认选中第一项的 ID
-}).catch(error => {
-  console.error("Error fetching channels:", error);
-});
-},
+    api
+      .getChannels()
+      .then(channels => {
+        console.log("channel123", channels);
+        // 使用从API获取的值来构建 products 数组
+        this.products = channels.value.map((item, index) => ({
+          id: item.id,
+          name: item.qtName
+        }));
+        this.productGroups = this.products[0].id; // 默认选中第一项的 ID
+      })
+      .catch(error => {
+        console.error("Error fetching channels:", error);
+      });
+  },
   watch: {
     // eChartRadioA: {
     //   immediate: true, // 将立即以表达式的当前值触发回调
@@ -206,51 +241,417 @@ this.productGroups = this.products[0].id; // 默认选中第一项的 ID
     //   },
     //   deep: true,
     // },
-     // 监听 productGroups 的变化
-     switchValue(newValue) {
+    // 监听 productGroups 的变化
+    switchValue(newValue) {
       console.log("按键切换", newValue);
       this.applyDateRange();
     },
-     productGroups(newVal) {
+    productGroups(newVal) {
       // 根据新的选中值获取对应的产品信息
       const selectedProduct = this.products.find(
-        (product) => product.id === newVal
+        product => product.id === newVal
       );
 
       // 输出选中的产品ID和名称
       console.log("选中的产品ID:", selectedProduct.id);
       console.log("选中的产品名称:", selectedProduct.name);
-console.log("选中项", selectedProduct);
+      console.log("选中项", selectedProduct);
       this.channelId = selectedProduct.id;
       this.applyDateRange();
       console.log("channelId====", this.channelId);
     }
   },
   methods: {
-// 初始化盈亏比/胜率
-initChart(winRateData, profitLossData, smoothLine) {
+    // 传递配置和请求参数，改进后的 initChart 方法
+    initChart2({ title, xAxisData, seriesList, legendList, yAxisConfig }) {
+      // 清空现有配置
+      this.myChart.clear();
+      let option = {
+        title: { text: title, left: "center" },
+        tooltip: { trigger: "axis" },
+        legend: {
+          data: legendList,
+          top: "12%",
+          zIndex: 100
+        },
+        grid: {
+          left: "15%",
+          right: "15%",
+          bottom: "15%",
+          containLabel: true
+        },
+        xAxis: {
+          type: "category",
+          data: xAxisData,
+          axisLabel: {
+            interval: 0,
+            fontSize: 12
+          }
+        },
+        yAxis: yAxisConfig,
+        series: seriesList
+      };
+
+      this.myChart.setOption(option);
+    },
+
+    // 通用方法，加载图表,目前是只按三块加载
+    async loadChartData() {
+      console.log("当前传参：", this.ApiParams);
+      this.loadChartDataCallCount += 1; // 每次调用就加1
+      console.log(`loadChartData 调用次数：${this.loadChartDataCallCount}`);
+      // 使用 this.currentChartConfig 配置加载图表
+      if (this.currentChartConfig === "tradingPerformance") {
+        try {
+          const [
+            windRateRes,
+            yingKui1Res,
+            yingKui2Res,
+            maxProfitTradeRes,
+            dailyMaxProfitRes
+          ] = await Promise.all([
+            api.getWindRate(this.ApiParams),
+            api.getYingKui1(this.ApiParams),
+            api.getYingKui2(this.ApiParams),
+            api.getMaxProfitByTrade(this.ApiParams),
+            api.getDailyMaxProfitAndDrawdown(this.ApiParams)
+          ]);
+
+          // 获取数据
+          const winRateData = windRateRes.value || [];
+          const yingKui1Data = yingKui1Res.value || [];
+          const yingKui2Data = yingKui2Res.value || [];
+          const maxProfitTradeData = maxProfitTradeRes.value || [];
+          const dailyMaxProfitData = dailyMaxProfitRes.value || [];
+
+          // 提取交易者名字、胜率等数据
+          const traderNames = winRateData.map(d => d.index);
+          const winRates = winRateData.map(d => d.shenglv * 100);
+          const profitLossRatio1 = yingKui1Data.map(d => d.yingkuibi);
+          const profitLossRatio2 = yingKui2Data.map(d => d.yingkuibi);
+          const maxProfitPerTrade = maxProfitTradeData.map(d => d.maxprofit);
+          const maxLossPerTrade = maxProfitTradeData.map(d => d.minprofit);
+          const dailyMaxProfit = dailyMaxProfitData.map(d => d.maxSolidprofit);
+          const dailyMaxDrawdown = dailyMaxProfitData.map(d => d.maxSolidback);
+
+          // 获取最大盈利、最大亏损及发生时间
+          const maxProfitTimes = maxProfitTradeData.map(d => d.tradeTime);
+          const maxLossTimes = maxProfitTradeData.map(d => d.tradeTime2);
+
+          // 调用封装好的 initChart
+          this.initChart2({
+            title: "交易表现综合分析",
+            xAxisData: traderNames,
+            legendList: [
+              "胜率(%)",
+              "盈亏比1",
+              "盈亏比2",
+              "单笔最大盈利",
+              "单笔最大亏损",
+              "单日最大盈利",
+              "单日最大回撤"
+            ],
+            yAxisConfig: [
+              {
+                type: "value",
+                name: "胜率 (%)",
+                min: 0,
+                max: 100,
+                axisLabel: { formatter: "{value} %" }
+              },
+              {
+                type: "value",
+                name: "盈亏比 / 金额 (万)",
+                min: 0,
+                axisLabel: { formatter: value => `${value}万` }
+              }
+            ],
+            seriesList: [
+              {
+                name: "胜率(%)",
+                type: "bar",
+                yAxisIndex: 0,
+                data: winRates,
+                label: {
+                  show: true,
+                  position: "top",
+                  fontSize: 12,
+                  formatter: val => `${val.value.toFixed(1)}%`
+                }
+              },
+              {
+                name: "盈亏比1",
+                type: "line",
+                yAxisIndex: 1,
+                data: profitLossRatio1
+              },
+              {
+                name: "盈亏比2",
+                type: "line",
+                yAxisIndex: 1,
+                data: profitLossRatio2
+              },
+              {
+                name: "单笔最大盈利",
+                type: "bar",
+                yAxisIndex: 1,
+                data: maxProfitPerTrade,
+                label: {
+                  show: true,
+                  position: "top",
+                  fontSize: 12,
+                  formatter: val => `${val.value.toFixed(1)}万`
+                }
+              },
+              {
+                name: "单笔最大亏损",
+                type: "bar",
+                yAxisIndex: 1,
+                data: maxLossPerTrade,
+                label: {
+                  show: true,
+                  position: "top",
+                  fontSize: 12,
+                  formatter: val => `${val.value.toFixed(1)}万`
+                }
+              },
+              {
+                name: "单日最大盈利",
+                type: "line",
+                yAxisIndex: 1,
+                data: dailyMaxProfit
+              },
+              {
+                name: "单日最大回撤",
+                type: "line",
+                yAxisIndex: 1,
+                data: dailyMaxDrawdown
+              }
+            ]
+          });
+        } catch (error) {
+          console.error("加载交易表现数据失败", error);
+          this.$message({
+            message: `加载交易表现数据失败: ${error.message || error}`,
+            type: "error"
+          });
+        }
+      } else if (this.currentChartConfig === "fundSituation") {
+        try {
+          const [initialProfitLossRes, rangeProfitRes] = await Promise.all([
+            api.getInitialProfitAndLoss(this.ApiParams),
+            api.getRangeProfit(this.ApiParams)
+          ]);
+
+          // 取数据
+          const initialProfitLossData = initialProfitLossRes.value || [];
+          const rangeProfitData = rangeProfitRes.value || [];
+
+          console.log("[资金情况] 期初盈亏原始数据:", initialProfitLossData);
+          console.log("[资金情况] 区间盈亏原始数据:", rangeProfitData);
+
+          // 提取字段
+          const traderNames = initialProfitLossData.map(d => d.index);
+          const initialProfits = initialProfitLossData.map(d => d.profit || 0);
+          const rangeProfits = rangeProfitData.map(d => d.profit || 0);
+
+          console.log("[资金情况] 交易员名称列表:", traderNames);
+          console.log("[资金情况] 期初盈亏:", initialProfits);
+          console.log("[资金情况] 区间盈亏:", rangeProfits);
+
+          // 调用封装好的 initChart
+          this.initChart2({
+            title: "资金情况综合分析",
+            xAxisData: traderNames,
+            legendList: ["期初盈亏", "区间盈亏"],
+            yAxisConfig: [
+              {
+                type: "value",
+                name: "金额（万）",
+                min: null
+              }
+            ],
+            seriesList: [
+              {
+                name: "期初盈亏",
+                type: "bar",
+                yAxisIndex: 0,
+                data: initialProfits,
+                itemStyle: {
+                  color: params => (params.value >= 0 ? "#3CB371" : "#FF6347")
+                },
+                label: {
+                  show: true,
+                  position: "top",
+                  formatter: "{c}"
+                }
+              },
+              {
+                name: "区间盈亏",
+                type: "bar",
+                yAxisIndex: 0,
+                data: rangeProfits,
+                itemStyle: {
+                  color: params => (params.value >= 0 ? "#3CB371" : "#FF6347")
+                },
+                label: {
+                  show: true,
+                  position: "top",
+                  formatter: "{c}"
+                }
+              }
+            ]
+          });
+        } catch (error) {
+          console.error("加载资金情况图表失败", error);
+          this.$message({
+            message: `加载资金情况图表失败: ${error.message || error}`,
+            type: "error"
+          });
+        }
+      } else {
+        try {
+          const [rangeEarningRateRes, yearEarningRateRes] = await Promise.all([
+            api.getRangeEarningRate(this.ApiParams),
+            api.getYearEarningRate(this.ApiParams)
+          ]);
+
+          // 取数据
+          const rangeEarningRateData = rangeEarningRateRes.value || [];
+          const yearEarningRateData = yearEarningRateRes.value || [];
+
+          console.log("[收益表现] 区间收益率原始数据:", rangeEarningRateData);
+          console.log("[收益表现] 年化收益率原始数据:", yearEarningRateData);
+
+          // 提取字段
+          const traderNames = rangeEarningRateData.map(d => d.index);
+          const rangeRates = rangeEarningRateData.map(d => d.earningRate || 0);
+          const rangeProfit = rangeEarningRateData.map(d => d.profit || 0);
+          const yearRates = yearEarningRateData.map(d => d.earningRate || 0);
+          const yearProfit = yearEarningRateData.map(d => d.profit || 0);
+          const zongZiJins = rangeEarningRateData.map(d => d.zongzijin || 0); // 总资金
+
+          // 打印日志
+          console.log("[收益表现] 交易员名称列表:", traderNames);
+          console.log("[收益表现] 区间收益率:", rangeRates);
+          console.log("[收益表现] 区间收益:", rangeProfit);
+          console.log("[收益表现] 年化收益率:", yearRates);
+          console.log("[收益表现] 年化收益:", yearProfit);
+          console.log("[收益表现] 总资金:", zongZiJins);
+
+          // 调用封装好的 initChart2
+          this.initChart2({
+            title: "收益表现综合分析",
+            xAxisData: traderNames,
+            legendList: ["区间收益率", "区间收益", "年化收益率", "年化收益"],
+            yAxisConfig: [
+              {
+                type: "value",
+                name: "收益率 (%)",
+                min: 0,
+                max: 100,
+                axisLabel: { formatter: "{value} %" }
+              },
+              {
+                type: "value",
+                name: "收益金额(万)",
+                min: 0
+              }
+            ],
+            seriesList: [
+              {
+                name: "区间收益率",
+                type: "line",
+                yAxisIndex: 0,
+                data: rangeRates
+              },
+              {
+                name: "区间收益",
+                type: "bar",
+                yAxisIndex: 1,
+                data: rangeProfit,
+                tooltip: {
+                  formatter: function(params) {
+                    const index = params.dataIndex;
+                    return `收益: ${params.value} | 总资金: ${zongZiJins[index]}`;
+                  }
+                }
+              },
+              {
+                name: "年化收益率",
+                type: "line",
+                yAxisIndex: 0,
+                data: yearRates
+              },
+              {
+                name: "年化收益",
+                type: "bar",
+                yAxisIndex: 1,
+                data: yearProfit,
+                tooltip: {
+                  formatter: function(params) {
+                    const index = params.dataIndex;
+                    return `收益: ${params.value} | 总资金: ${zongZiJins[index]}`;
+                  }
+                }
+              }
+            ]
+          });
+        } catch (error) {
+          console.error("加载收益表现数据失败", error);
+          this.$message({
+            message: `加载收益表现数据失败: ${error.message || error}`,
+            type: "warning"
+          });
+        }
+      }
+    },
+    handleTabsChange() {
+      console.log("切换分支", this.activeTabs);
+
+      console.log("切换分支", this.activeTab);
+
+      if (this.activeTabs === "performance") {
+        this.currentChartConfig = "tradingPerformance"; // 交易表现
+      } else if (this.activeTabs === "capital") {
+        this.currentChartConfig = "fundSituation"; // 资金情况
+      } else if (this.activeTabs === "returns") {
+        this.currentChartConfig = "earningPerformance"; // 收益表现
+      } else {
+        // 理论上不会进这里，因为radio必选一个
+        this.currentChartConfig = null;
+        console.warn("未选择任何分类！");
+      }
+
+      console.log("当前chartConfig:", this.currentChartConfig);
+      this.loadChartData();
+      // 然后你可以在这里重新加载图表
+      // this.reloadChart();
+    },
+    // 初始化盈亏比/胜率
+    initChart(winRateData, profitLossData, smoothLine) {
       console.log("胜率数据111:", winRateData);
       console.log("盈亏比数据222:", profitLossData);
 
       // X轴交易员姓名
-      let traderNames = winRateData.map((d) => d.index);
+      let traderNames = winRateData.map(d => d.index);
 
       // 胜率数据（转换为百分比）
-      let winRates = winRateData.map((d) => d.shenglv * 100);
+      let winRates = winRateData.map(d => d.shenglv * 100);
 
       // 盈亏比数据
-      let profitLossRatios = profitLossData.map((d) => d.yingkuibi);
+      let profitLossRatios = profitLossData.map(d => d.yingkuibi);
 
       // 盈亏值数据
-      let profits = profitLossData.map((d) => d.ying); // 盈
-      let losses = profitLossData.map((d) => d.kui); // 亏
+      let profits = profitLossData.map(d => d.ying); // 盈
+      let losses = profitLossData.map(d => d.kui); // 亏
 
       // 胜、平、败数据
-      let wins = winRateData.map((d) => d.sheng);
-      let draws = winRateData.map((d) => d.ping);
-      let fails = winRateData.map((d) => d.bai);
+      let wins = winRateData.map(d => d.sheng);
+      let draws = winRateData.map(d => d.ping);
+      let fails = winRateData.map(d => d.bai);
 
-      console.log("输出myChart", this.myChart)
+      console.log("输出myChart", this.myChart);
       // 清空现有配置
       this.myChart.clear();
 
@@ -258,7 +659,7 @@ initChart(winRateData, profitLossData, smoothLine) {
         title: { text: "交易胜率 & 盈亏比", left: "center" },
         tooltip: {
           trigger: "axis",
-          formatter: function (params) {
+          formatter: function(params) {
             let index = params[0].dataIndex;
             let trader = params[0].axisValue;
             let win = wins[index];
@@ -276,26 +677,26 @@ initChart(winRateData, profitLossData, smoothLine) {
                     盈亏比: ${profitLossRatio.toFixed(2)}<br/>
                     盈: ${profit} | 亏: ${loss}
                 `;
-          },
+          }
         },
         legend: {
           data: ["胜率(%)", "盈亏比", "盈", "亏"],
           top: "12%",
-          zIndex: 100,
+          zIndex: 100
         },
         grid: {
           left: "15%",
           right: "15%",
           bottom: "15%",
-          containLabel: true,
+          containLabel: true
         },
         xAxis: {
           type: "category",
           data: traderNames,
           axisLabel: {
             interval: 0,
-            fontSize: 12,
-          },
+            fontSize: 12
+          }
         },
         yAxis: [
           {
@@ -303,14 +704,14 @@ initChart(winRateData, profitLossData, smoothLine) {
             name: "胜率 (%) / 盈亏值",
             min: 0,
             max: 100,
-            axisLabel: { formatter: "{value} %" },
+            axisLabel: { formatter: "{value} %" }
           },
           {
             type: "value",
             name: "盈亏比",
             min: 0,
-            axisLabel: { formatter: "{value}" },
-          },
+            axisLabel: { formatter: "{value}" }
+          }
         ],
         series: [
           {
@@ -320,7 +721,7 @@ initChart(winRateData, profitLossData, smoothLine) {
             data: winRates,
             color: "#2196F3",
             barWidth: "20%",
-            label: { show: true, position: "top", formatter: "{c}%" },
+            label: { show: true, position: "top", formatter: "{c}%" }
           },
           {
             name: "盈",
@@ -329,7 +730,7 @@ initChart(winRateData, profitLossData, smoothLine) {
             data: profits,
             color: "#4CAF50",
             barWidth: "20%",
-            label: { show: true, position: "top" },
+            label: { show: true, position: "top" }
           },
           {
             name: "亏",
@@ -338,7 +739,7 @@ initChart(winRateData, profitLossData, smoothLine) {
             data: losses,
             color: "#F44336",
             barWidth: "20%",
-            label: { show: true, position: "top" },
+            label: { show: true, position: "top" }
           },
           {
             name: "盈亏比",
@@ -350,34 +751,34 @@ initChart(winRateData, profitLossData, smoothLine) {
             symbol: "circle",
             symbolSize: 8,
             smooth: smoothLine,
-            label: { show: true, position: "top" },
-          },
-        ],
+            label: { show: true, position: "top" }
+          }
+        ]
       };
 
       this.myChart.setOption(option);
     },
     async applyDateRange() {
-      console.log("输出搜索参数", this.searchParam)
+      console.log("输出搜索参数", this.searchParam);
       const dates = this.searchParam.date || [];
 
-const [startDate, endDate] = dates.map(date => {
-  if (typeof date === "string") {
-    return date.split("T")[0]; // 如果是字符串，直接格式化
-  } else if (date instanceof Date) {
-    return date.toISOString().split("T")[0]; // 如果是 Date 对象，转换为 ISO 格式后再处理
-  } else {
-    return ""; // 处理空值
-  }
-});
-console.log("applyDateRange---输出channel", this.channelId)
-console.log("StartDay:", startDate);
-console.log("EndDay:", endDate);
-console.log("ProductGroups", this.productGroups);
+      const [startDate, endDate] = dates.map(date => {
+        if (typeof date === "string") {
+          return date.split("T")[0]; // 如果是字符串，直接格式化
+        } else if (date instanceof Date) {
+          return date.toISOString().split("T")[0]; // 如果是 Date 对象，转换为 ISO 格式后再处理
+        } else {
+          return ""; // 处理空值
+        }
+      });
+      console.log("applyDateRange---输出channel", this.channelId);
+      console.log("StartDay:", startDate);
+      console.log("EndDay:", endDate);
+      console.log("ProductGroups", this.productGroups);
       // 提取并格式化日期
-// const [startDate, endDate] = this.searchParam.date.map(date => date.split("T")[0]);
-// console.log("StartDay", startDate);
-// console.log("EndDay", endDate);
+      // const [startDate, endDate] = this.searchParam.date.map(date => date.split("T")[0]);
+      // console.log("StartDay", startDate);
+      // console.log("EndDay", endDate);
 
       try {
         console.log("是否切换", this.switchValue);
@@ -396,68 +797,74 @@ console.log("ProductGroups", this.productGroups);
           startDate: startDate,
           weidu: weiduValue,
           userIds: this.searchParam.userIds,
-          channelIds: Array.isArray(this.channelId) ? this.channelId : [this.channelId],
+          channelIds: Array.isArray(this.channelId)
+            ? this.channelId
+            : [this.channelId]
         };
-        console.log("输出params", params);
-
+        console.log("输出params11", params);
+        this.ApiParams = params;
         if (
           weiduValue === "person" &&
           (!this.searchParam.userIds || this.searchParam.userIds.length === 0)
         ) {
           console.warn("交易员为空");
-      //     this.$message({
-      //   message: "请至少选择一名交易员",
-      //   type: "warning",
-      // });
+          //     this.$message({
+          //   message: "请至少选择一名交易员",
+          //   type: "warning",
+          // });
           return;
         }
+        // Wait for the data to load before continuing
+        await this.loadChartData(); // You should await this if loadChartData is an async function
+        // this.initChart2(params);
         // 使用 await 获取请求结果，改为异步调用
-        const [winRateResponse, profitLossResponse] = await Promise.all([
-          api.getWindRate(params), // 请求胜率数据
-          api.getYingKui1(params), // 请求盈亏比数据
-        ]);
-        console.log("胜率数据:", winRateResponse);
-        console.log("盈亏比数据:", profitLossResponse);
+        // 0418 21:00注释
+        // const [winRateResponse, profitLossResponse] = await Promise.all([
+        //   api.getWindRate(params), // 请求胜率数据
+        //   api.getYingKui1(params) // 请求盈亏比数据
+        // ]);
+        // console.log("胜率数据:", winRateResponse);
+        // console.log("盈亏比数据:", profitLossResponse);
 
-        if (
-          winRateResponse.code === "00000" &&
-          profitLossResponse.code === "00000"
-        ) {
-          console.log("返回的都是00000");
-          console.log("winRateResponse", winRateResponse);
-          console.log("profitLossResponse", profitLossResponse);
-          this.initChart(winRateResponse.value, profitLossResponse.value, true);
-        } else {
-          console.error(
-            "API 返回错误:",
-            winRateResponse.code,
-            profitLossResponse.code
-          );
-        }
+        // if (
+        //   winRateResponse.code === "00000" &&
+        //   profitLossResponse.code === "00000"
+        // ) {
+        //   console.log("返回的都是00000");
+        //   console.log("winRateResponse", winRateResponse);
+        //   console.log("profitLossResponse", profitLossResponse);
+        //   this.initChart(winRateResponse.value, profitLossResponse.value, true);
+        // } else {
+        //   console.error(
+        //     "API 返回错误:",
+        //     winRateResponse.code,
+        //     profitLossResponse.code
+        //   );
+        // }
       } catch (error) {
         console.error("获取数据失败:", error);
       }
     },
-    userSummaryChange(rows) {
-      // this.initChartB
-      console.log("userSummaryChange", rows)
+    userSummaryChange: debounce(function(rows) {
+      console.log("userSummaryChange", rows);
       const userIds = rows.map(n => n.userId);
-      if (JSON.stringify(this.searchParam.userIds) !== JSON.stringify(userIds)) {
-        this.searchParam.userIds = rows.map(n => n.userId)
+      if (
+        JSON.stringify(this.searchParam.userIds) !== JSON.stringify(userIds)
+      ) {
+        this.searchParam.userIds = userIds;
       }
-
       this.applyDateRange();
-    },
+    }, 300),
     initChartA(data) {
       this.initChartDataA = data;
       const option = {
         title: {
-          text: '债券交易明细统计',
-          subtext: '债券交易量统计',
-          x: 'left'
+          text: "债券交易明细统计",
+          subtext: "债券交易量统计",
+          x: "left"
         },
         tooltip: {
-          trigger: 'item',
+          trigger: "item",
           formatter: "{a} <br/>{b} : {c} ({d}%)"
         },
         toolbox: {
@@ -467,12 +874,12 @@ console.log("ProductGroups", this.productGroups);
             dataView: { show: true, readOnly: false },
             magicType: {
               show: true,
-              type: ['pie', 'funnel'],
+              type: ["pie", "funnel"],
               option: {
                 funnel: {
-                  x: '25%',
-                  width: '50%',
-                  funnelAlign: 'left',
+                  x: "25%",
+                  width: "50%",
+                  funnelAlign: "left",
                   max: 1548
                 }
               }
@@ -484,55 +891,59 @@ console.log("ProductGroups", this.productGroups);
         calculable: true,
         series: [
           {
-            name: '交易总量',
-            type: 'pie',
-            radius: '55%',
-            center: ['50%', '50%'],
+            name: "交易总量",
+            type: "pie",
+            radius: "55%",
+            center: ["50%", "50%"],
             data: [],
             emphasis: {
               itemStyle: {
                 shadowBlur: 10,
                 shadowOffsetX: 0,
-                shadowColor: 'rgba(0, 0, 0, 0.5)'
+                shadowColor: "rgba(0, 0, 0, 0.5)"
               }
             }
           }
         ]
       };
 
-      if (data.length <= 0) return
-      const groupByTsCode = util.groupArrayToMap(data, item => item.tscode, item => item)
+      if (data.length <= 0) return;
+      const groupByTsCode = util.groupArrayToMap(
+        data,
+        item => item.tscode,
+        item => item
+      );
       let seriesData = [];
       Array.from(groupByTsCode.entries()).forEach(([key, value]) => {
         if (this.eChartRadioA === 0) {
           const res = {
             value: value.reduce((sum, item) => {
-              return sum + parseFloat(item.volume || 0)
+              return sum + parseFloat(item.volume || 0);
             }, 0),
             name: key
           };
-          seriesData.push(res)
+          seriesData.push(res);
         } else {
           const res = { value: value.length, name: key };
-          seriesData.push(res)
+          seriesData.push(res);
         }
-      })
-      option.series[0].data = seriesData
-      const chartDom = this.$refs.chartA
+      });
+      option.series[0].data = seriesData;
+      const chartDom = this.$refs.chartA;
       if (chartDom) {
-        this.eChartA = echarts.init(chartDom, null, { width: 'auto' })
-        option && this.eChartA.setOption(option, true)
+        this.eChartA = echarts.init(chartDom, null, { width: "auto" });
+        option && this.eChartA.setOption(option, true);
       }
     },
     initChartB(data) {
       this.userSummarys = data;
       let option = {
         title: {
-          x: 'center',
-          text: '用户交易明细汇总',
+          x: "center",
+          text: "用户交易明细汇总"
         },
         tooltip: {
-          trigger: 'axis'
+          trigger: "axis"
         },
         toolbox: {
           show: false,
@@ -551,32 +962,32 @@ console.log("ProductGroups", this.productGroups);
         },
         xAxis: [
           {
-            type: 'category',
+            type: "category",
             show: false,
             data: []
           }
         ],
         yAxis: [
           {
-            type: 'value',
+            type: "value",
             show: false
           },
           {
-            type: 'value',
-            name: '总盈亏/万',
-            position: 'left',
+            type: "value",
+            name: "总盈亏/万",
+            position: "left",
             axisLabel: {
-              formatter: '{value}.0000'
+              formatter: "{value}.0000"
             }
           }
         ],
         series: [
           {
-            name: '用户交易',
-            type: 'bar',
+            name: "用户交易",
+            type: "bar",
             itemStyle: {
               normal: {
-                color: function (params) {
+                color: function(params) {
                   // build a color map as your need.
                   // var colorList = [
                   //   '#C1232B', '#B5C334', '#FCCE10', '#E87C25', '#27727B',
@@ -584,74 +995,82 @@ console.log("ProductGroups", this.productGroups);
                   //   '#D7504B', '#C6E579', '#F4E001', '#F0805A', '#26C0C0'
                   // ];
                   // const index = params.dataIndex >= colorList.length ? (params.dataIndex - colorList.length) : params.dataIndex
-                  return '#009688'
+                  return "#009688";
                 },
                 label: {
                   show: true,
-                  position: 'top',
-                  formatter: '{b}'
+                  position: "top",
+                  formatter: "{b}"
                 }
               }
             },
-            data: [],
+            data: []
           },
           {
-            name: '盈亏/万',
-            type: 'line',
+            name: "盈亏/万",
+            type: "line",
             yAxisIndex: 1,
             smooth: true,
             // 设置数据点颜色为红色
             itemStyle: {
-              color: 'red'
+              color: "red"
             },
-            data: [],
+            data: []
           }
         ]
       };
-      const optionData = data ? data.filter((n, i) => {
-        return (n.limitBid + n.limitOffer) > 0;
-      }) : []
+      const optionData = data
+        ? data.filter((n, i) => {
+            return n.limitBid + n.limitOffer > 0;
+          })
+        : [];
 
-      option.xAxis[0].data = optionData ? optionData.map((n, i) => {
-        return n.nickName
-      }) : []
+      option.xAxis[0].data = optionData
+        ? optionData.map((n, i) => {
+            return n.nickName;
+          })
+        : [];
 
-      option.series[0].data = optionData ? optionData.map((n, i) => {
-        return (n.limitBid + n.limitOffer)
-      }) : []
+      option.series[0].data = optionData
+        ? optionData.map((n, i) => {
+            return n.limitBid + n.limitOffer;
+          })
+        : [];
 
-      const series1 = optionData ? optionData.map((n, i) => {
-        return n.solidProfit
-      }) : []
-      option.series[1].data = series1.map(n => parseFloat(n.replace(/,/g, '')))
+      const series1 = optionData
+        ? optionData.map((n, i) => {
+            return n.solidProfit;
+          })
+        : [];
+      option.series[1].data = series1.map(n => parseFloat(n.replace(/,/g, "")));
       // option.series[0].markPoint.data = data ? data.map((n, i) => {
       //   return { xAxis: i, y: 350, name: n.nickName, symbolSize: 20 }
       // }) : []
-      const chartDom = this.$refs.chartB
+      const chartDom = this.$refs.chartB;
       if (chartDom) {
-        this.eChartB = echarts.init(chartDom, null, { width: 'auto' })
-        option && this.eChartB.setOption(option, true)
+        this.eChartB = echarts.init(chartDom, null, { width: "auto" });
+        option && this.eChartB.setOption(option, true);
       }
     },
     initChartC() {
       const option = {
         title: {
-          x: 'left',
-          text: '产品收益明细',
+          x: "left",
+          text: "产品收益明细"
         },
         tooltip: {
-          trigger: 'axis'
+          trigger: "axis"
         },
         legend: {
-          x: 'right',
-          data: ['权益一号', '权益二号']
+          x: "right",
+          data: ["权益一号", "权益二号"]
         },
         toolbox: {
           show: false,
           feature: {
             mark: { show: true },
             dataView: { show: true, readOnly: false },
-            magicType: { show: true, type: ['line', 'bar', 'stack', 'tiled'] },
+            magicType: { show: true, type: ["line", "bar", "stack", "tiled"] },
             restore: { show: true },
             saveAsImage: { show: true }
           }
@@ -665,62 +1084,61 @@ console.log("ProductGroups", this.productGroups);
         calculable: true,
         xAxis: [
           {
-            type: 'category',
+            type: "category",
             boundaryGap: false,
-            data: ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
+            data: ["周一", "周二", "周三", "周四", "周五", "周六", "周日"]
           }
         ],
         yAxis: [
           {
-            type: 'value',
-            name: '资金池/万',
-            position: 'left',
+            type: "value",
+            name: "资金池/万",
+            position: "left",
             axisLabel: {
-              formatter: '{value}'
+              formatter: "{value}"
             },
             max: 101000,
-            min: 99900,
-          },
-
+            min: 99900
+          }
         ],
         series: [
           {
-            name: '权益一号',
-            type: 'line',
-            stack: '权益一号',
+            name: "权益一号",
+            type: "line",
+            stack: "权益一号",
             smooth: true,
             data: [100000, 100720, 100050, 100100, 100620, 100520, 100120]
           },
           {
-            name: '权益二号',
-            type: 'line',
-            stack: '权益二号',
+            name: "权益二号",
+            type: "line",
+            stack: "权益二号",
             smooth: true,
             data: [100100, 99989, 100020, 100120, 100620, 100920, 100720]
           }
         ]
       };
-      const chartDom = this.$refs.chartC
+      const chartDom = this.$refs.chartC;
       if (chartDom) {
-        this.eChartC = echarts.init(chartDom, null, { width: 'auto' })
-        this.eChartC.setOption(option, true)
+        this.eChartC = echarts.init(chartDom, null, { width: "auto" });
+        this.eChartC.setOption(option, true);
       }
     },
     initChartD(data) {
       const option = {
         title: {
-          x: 'left',
-          text: '平仓收益走势图',
+          x: "left",
+          text: "平仓收益走势图"
         },
         tooltip: {
-          trigger: 'axis'
+          trigger: "axis"
         },
         toolbox: {
           show: false,
           feature: {
             mark: { show: true },
             dataView: { show: true, readOnly: false },
-            magicType: { show: true, type: ['line', 'bar', 'stack', 'tiled'] },
+            magicType: { show: true, type: ["line", "bar", "stack", "tiled"] },
             restore: { show: true },
             saveAsImage: { show: true }
           }
@@ -728,20 +1146,20 @@ console.log("ProductGroups", this.productGroups);
         calculable: true,
         xAxis: [
           {
-            type: 'category',
+            type: "category",
             boundaryGap: false,
             data: []
           }
         ],
         yAxis: [
           {
-            type: 'value',
-            name: '盈亏额/万',
-            position: 'left',
+            type: "value",
+            name: "盈亏额/万",
+            position: "left",
             axisLabel: {
-              formatter: '{value}.0000'
-            },
-          },
+              formatter: "{value}.0000"
+            }
+          }
         ],
         series: []
       };
@@ -749,194 +1167,255 @@ console.log("ProductGroups", this.productGroups);
       let xAxisData = [];
       let seriesData = [];
 
-      if (this.searchParam.userIds.length > 0 && this.searchParam.userIds.length <= 6) {
+      if (
+        this.searchParam.userIds.length > 0 &&
+        this.searchParam.userIds.length <= 6
+      ) {
         data.forEach(n => {
-          n.date = util.dateFormat(n.createTime, "YYYY-MM-DD")
-        })
-        xAxisData = util.getDatesInRange(this.searchParam.date[0], this.searchParam.date[1], "YYYY-MM-DD");
+          n.date = util.dateFormat(n.createTime, "YYYY-MM-DD");
+        });
+        xAxisData = util.getDatesInRange(
+          this.searchParam.date[0],
+          this.searchParam.date[1],
+          "YYYY-MM-DD"
+        );
         // xAxisData = [...new Set(data.map(n => n.date))];
         // xAxisData.sort(function (a, b) {
         //   return a < b ? -1 : 1
         // })
-        const groupByUser = util.groupArrayToMap(data, item => item.yanjiuyuanId, item => item)
+        const groupByUser = util.groupArrayToMap(
+          data,
+          item => item.yanjiuyuanId,
+          item => item
+        );
         Array.from(groupByUser.entries()).forEach(([key, value]) => {
           let seriesData1 = [];
-          const groupByDate = util.groupArrayToMap(value, item => item.date, item => parseFloat(item.profit || 0))
+          const groupByDate = util.groupArrayToMap(
+            value,
+            item => item.date,
+            item => parseFloat(item.profit || 0)
+          );
           xAxisData.forEach(n => {
-            let val = groupByDate.get(n)
+            let val = groupByDate.get(n);
             if (val && val.length > 0) {
-              const sum = val.reduce((sum, item) => {
-                return sum + parseFloat(item || 0) * 10000
-              }, 0) / 10000
-              seriesData1.push((seriesData1.length > 0 ? seriesData1[seriesData1.length - 1] : 0) + (sum || 0))
+              const sum =
+                val.reduce((sum, item) => {
+                  return sum + parseFloat(item || 0) * 10000;
+                }, 0) / 10000;
+              seriesData1.push(
+                (seriesData1.length > 0
+                  ? seriesData1[seriesData1.length - 1]
+                  : 0) + (sum || 0)
+              );
             } else {
-              seriesData1.push((seriesData1.length > 0 ? seriesData1[seriesData1.length - 1] : 0) + 0)
+              seriesData1.push(
+                (seriesData1.length > 0
+                  ? seriesData1[seriesData1.length - 1]
+                  : 0) + 0
+              );
             }
-          })
+          });
 
           // value.forEach(n => {
           //   seriesData1.push(util.moneyFormat(parseFloat(seriesData1.length > 0 ? seriesData1[seriesData1.length - 1] : 0) + parseFloat(n.profit || 0), 4))
           // })
-          seriesData1 = seriesData1.map(n => n.toFixed(4))
+          seriesData1 = seriesData1.map(n => n.toFixed(4));
           const user = this.userSummarys.filter(n => n.userId === key);
           let series = {
-            name: user[0].nickName + ': 截至盈亏',
-            type: 'line',
+            name: user[0].nickName + ": 截至盈亏",
+            type: "line",
             // stack: '总量',
             yAxisIndex: 0,
-            symbol: 'none',
+            symbol: "none",
             smooth: true,
             data: seriesData1
-          }
-          option.series.push(series)
+          };
+          option.series.push(series);
           // console.log(key, series)
-        })
+        });
       } else {
         data.forEach(n => {
-          n.date = util.dateFormat(n.createTime, "YYYY-MM-DD")
-        })
-        xAxisData = util.getDatesInRange(this.searchParam.date[0], this.searchParam.date[1], "YYYY-MM-DD");
-        const groupByDate = util.groupArrayToMap(data, item => item.date, item => parseFloat(item.profit || 0))
+          n.date = util.dateFormat(n.createTime, "YYYY-MM-DD");
+        });
+        xAxisData = util.getDatesInRange(
+          this.searchParam.date[0],
+          this.searchParam.date[1],
+          "YYYY-MM-DD"
+        );
+        const groupByDate = util.groupArrayToMap(
+          data,
+          item => item.date,
+          item => parseFloat(item.profit || 0)
+        );
         xAxisData.forEach(n => {
-          let val = groupByDate.get(n)
+          let val = groupByDate.get(n);
           if (val && val.length > 0) {
-            const sum = val.reduce((sum, item) => {
-              return sum + parseFloat(item || 0) * 10000
-            }, 0) / 10000
-            seriesData.push((seriesData.length > 0 ? seriesData[seriesData.length - 1] : 0) + (sum || 0))
+            const sum =
+              val.reduce((sum, item) => {
+                return sum + parseFloat(item || 0) * 10000;
+              }, 0) / 10000;
+            seriesData.push(
+              (seriesData.length > 0 ? seriesData[seriesData.length - 1] : 0) +
+                (sum || 0)
+            );
           } else {
-            seriesData.push((seriesData.length > 0 ? seriesData[seriesData.length - 1] : 0) + 0)
+            seriesData.push(
+              (seriesData.length > 0 ? seriesData[seriesData.length - 1] : 0) +
+                0
+            );
           }
-        })
-        const seriesDatas = seriesData.map(n => n.toFixed(4))
+        });
+        const seriesDatas = seriesData.map(n => n.toFixed(4));
         option.series.push({
-          name: '截至盈亏',
-          type: 'line',
+          name: "截至盈亏",
+          type: "line",
           // stack: '总量',
           yAxisIndex: 0,
-          symbol: 'none',
+          symbol: "none",
           smooth: true,
           data: seriesDatas
-        })
+        });
       }
 
-      option.xAxis[0].data = xAxisData
-      const chartDomD = this.$refs.chartD
+      option.xAxis[0].data = xAxisData;
+      const chartDomD = this.$refs.chartD;
       if (chartDomD) {
-        this.eChartD = echarts.init(chartDomD, null, { width: 'auto' })
-        this.eChartD.setOption(option, true)
+        this.eChartD = echarts.init(chartDomD, null, { width: "auto" });
+        this.eChartD.setOption(option, true);
       }
 
       //
       let optionSec = {
         title: {
-          x: 'left',
-          text: '平仓品种收益',
+          x: "left",
+          text: "平仓品种收益"
         },
         tooltip: {
-          trigger: 'axis'
+          trigger: "axis"
         },
         toolbox: {
           show: false,
           feature: {
             mark: { show: true },
             dataView: { show: true, readOnly: false },
-            magicType: { show: true, type: ['line', 'bar', 'stack', 'tiled'] },
+            magicType: { show: true, type: ["line", "bar", "stack", "tiled"] },
             restore: { show: true },
             saveAsImage: { show: true }
           }
         },
-        xAxis: [{
-          type: 'category',
-          data: []
-        }],
-        yAxis: [{
-          type: 'value',
-          name: '总盈亏/万',
-          position: 'left',
-          axisLabel: {
-            formatter: '{value}.0000'
+        xAxis: [
+          {
+            type: "category",
+            data: []
           }
-        }],
-        series: [{
-          name: '当前盈亏',
-          data: [],
-          type: 'bar',
-          itemStyle: {
-            normal: {
-              label: {
-                show: true,
-                position: 'top',
-                formatter: '{b}'
-              }
+        ],
+        yAxis: [
+          {
+            type: "value",
+            name: "总盈亏/万",
+            position: "left",
+            axisLabel: {
+              formatter: "{value}.0000"
             }
-          },
-          barWidth: '60%',
-        }]
+          }
+        ],
+        series: [
+          {
+            name: "当前盈亏",
+            data: [],
+            type: "bar",
+            itemStyle: {
+              normal: {
+                label: {
+                  show: true,
+                  position: "top",
+                  formatter: "{b}"
+                }
+              }
+            },
+            barWidth: "60%"
+          }
+        ]
       };
 
       xAxisData = [];
       seriesData = [];
-      const groupByTscode = util.groupArrayToMap(data, item => item.tscode, item => item)
+      const groupByTscode = util.groupArrayToMap(
+        data,
+        item => item.tscode,
+        item => item
+      );
       Array.from(groupByTscode.entries()).forEach(([key, value]) => {
-        xAxisData.push(key)
-        const sum = util.moneyFormat(value.reduce((sum, item) => {
-          return sum + parseFloat(item.profit || 0) * 10000
-        }, 0) / 10000, 4)
-        seriesData.push({ value: sum, itemStyle: { color: sum > 0 ? 'green' : 'red' } })
-      })
-      optionSec.xAxis[0].data = xAxisData
-      optionSec.series[0].data = seriesData
-      const chartDomE = this.$refs.chartE
+        xAxisData.push(key);
+        const sum = util.moneyFormat(
+          value.reduce((sum, item) => {
+            return sum + parseFloat(item.profit || 0) * 10000;
+          }, 0) / 10000,
+          4
+        );
+        seriesData.push({
+          value: sum,
+          itemStyle: { color: sum > 0 ? "green" : "red" }
+        });
+      });
+      optionSec.xAxis[0].data = xAxisData;
+      optionSec.series[0].data = seriesData;
+      const chartDomE = this.$refs.chartE;
       if (chartDomE) {
-        this.eChartE = echarts.init(chartDomE, null, { width: 'auto' })
+        this.eChartE = echarts.init(chartDomE, null, { width: "auto" });
         this.eChartE.setOption(optionSec, true);
       }
-      this.initChartA(data)
+      this.initChartA(data);
       // if (this.setAuth('system:alltrans:query')) {
       //   this.initChartA(data)
       // }
-    },
+    }
   },
 
   mounted() {
     if (window.v1) {
       Promise.all([]).then(async () => {
         const response = await window.v1.getWinThis();
-        this.child = response.data && response.data.child
-      })
+        this.child = response.data && response.data.child;
+      });
     }
-    setTimeout(() => {
-      this.initChartC()
-      // this.initChartD()
-    }, 300)
-    const end = new Date();
-    const start = new Date();
-    start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
-    this.searchParam.date = [start, end]
-    this.initFrameH('userSummaryH', 300)
-    // this.$winResize(() => {
-    //   this.eChartA && this.eChartA.resize()
-    //   this.eChartB && this.eChartB.resize()
-    //   this.eChartC && this.eChartC.resize()
-    //   this.eChartD && this.eChartD.resize()
-    //   this.eChartE && this.eChartE.resize()
-    //   this.initFrameH('userSummaryH', 700)
-    // })
-    this.myChart = echarts.init(this.$refs['main-chart']);
-     // 窗口大小变化时触发
-  this.$winResize(() => {
-    // 调整图表大小
-    this.myChart.resize();
-console.log("窗口改变大小");
-    // 调整其他布局的高度（如果有）
-    this.initFrameH('userSummaryH', 700);
-  });
-  //   setTimeout(() => {
-  //   this.applyDateRange();
-  // }, 2000);
-  },
-}
+    console.log("进入mounted！！！");
+    // 等待DOM渲染完成后再初始化图表
+    this.$nextTick(() => {
+      // 延时初始化图表，确保DOM渲染完成
+      setTimeout(() => {
+        this.initChartC();
+        // this.initChartD()
+      }, 300);
+
+      const end = new Date();
+      const start = new Date();
+      start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
+      this.searchParam.date = [start, end];
+
+      this.initFrameH("userSummaryH", 300);
+
+      // 初始化 ECharts 图表
+      // 初始化 ECharts 图表
+      const chartContainer = this.$refs.mainChart; // 确保ref一致
+      if (chartContainer) {
+        this.myChart = echarts.init(chartContainer);
+        console.log("打印myChart", this.myChart);
+      } else {
+        console.error("图表容器未找到！");
+      }
+
+      // 窗口大小变化时触发
+      this.$winResize(() => {
+        if (this.myChart) {
+          this.myChart.resize();
+          console.log("窗口改变大小");
+        }
+        this.initFrameH("userSummaryH", 700);
+      });
+    });
+  }
+};
 </script>
 
 <style lang="scss" scoped>
@@ -955,7 +1434,7 @@ console.log("窗口改变大小");
       background-color: #fff;
       border-radius: 3px;
       padding: 0 10px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, .12), 0 0 6px rgba(0, 0, 0, .04);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12), 0 0 6px rgba(0, 0, 0, 0.04);
     }
   }
 
@@ -966,7 +1445,7 @@ console.log("窗口改变大小");
       height: 350px;
       background: white;
       border-radius: 3px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, .12), 0 0 6px rgba(0, 0, 0, .04);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12), 0 0 6px rgba(0, 0, 0, 0.04);
       margin: 0px 10px;
       position: relative;
 
@@ -979,18 +1458,24 @@ console.log("窗口改变大小");
   }
 
   .board-user {
-
     .board-user-box {
       width: 100%;
       height: calc(100vh - 440px);
       background: white;
       border-radius: 3px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, .12), 0 0 6px rgba(0, 0, 0, .04);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12), 0 0 6px rgba(0, 0, 0, 0.04);
       margin: 10px;
       padding: 5px;
     }
   }
-
+  .custom-date-picker {
+    font-size: 16px;
+    font-weight: bold;
+  }
+  .custom-date-picker .el-picker-panel {
+    font-size: 16px;
+    font-weight: bold;
+  }
   .board-trans {
     padding: 0px 0;
 
@@ -998,7 +1483,7 @@ console.log("窗口改变大小");
       height: 350px;
       background: white;
       border-radius: 3px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, .12), 0 0 6px rgba(0, 0, 0, .04);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12), 0 0 6px rgba(0, 0, 0, 0.04);
       margin: 0 10px 10px 0;
     }
   }
@@ -1008,7 +1493,6 @@ console.log("窗口改变大小");
     width: calc(100% - 20px);
     padding: 10px 10px 0 10px;
     border-radius: 3px;
-
   }
 }
 </style>
