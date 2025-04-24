@@ -186,6 +186,7 @@ export default {
       products: [],
       productGroups: {},
       channelId: "",
+      channelIds: [],
       switchValue: false,
       child: false,
       myChart: {},
@@ -228,6 +229,8 @@ export default {
           name: item.qtName
         }));
         this.productGroups = this.products[0].id; // 默认选中第一项的 ID
+        this.channelIds = channels.value.map(item => item.id);
+        console.log("channelIds", this.channelIds);
       })
       .catch(error => {
         console.error("Error fetching channels:", error);
@@ -271,7 +274,7 @@ export default {
         tooltip: { trigger: "axis" },
         legend: {
           data: legendList,
-          top: "12%",
+          top: "7%",
           zIndex: 100
         },
         grid: {
@@ -375,8 +378,7 @@ export default {
                 label: {
                   show: true,
                   position: "top",
-                  fontSize: 12,
-                  formatter: val => `${val.value.toFixed(1)}%`
+                  formatter: "{c}%" // {c}是当前数据项的数值
                 }
               },
               {
@@ -399,21 +401,14 @@ export default {
                 label: {
                   show: true,
                   position: "top",
-                  fontSize: 12,
-                  formatter: val => `${val.value.toFixed(1)}万`
+                  formatter: value => `${value.value}万` // value.value 是数据
                 }
               },
               {
                 name: "单笔最大亏损",
                 type: "bar",
                 yAxisIndex: 1,
-                data: maxLossPerTrade,
-                label: {
-                  show: true,
-                  position: "top",
-                  fontSize: 12,
-                  formatter: val => `${val.value.toFixed(1)}万`
-                }
+                data: maxLossPerTrade
               },
               {
                 name: "单日最大盈利",
@@ -426,6 +421,38 @@ export default {
                 type: "line",
                 yAxisIndex: 1,
                 data: dailyMaxDrawdown
+              },
+              {
+                name: "单笔最大盈利发生时间",
+                type: "line",
+                yAxisIndex: 1,
+                data: maxProfitTimes
+              },
+              // 合并最大盈利和发生时间数据
+              {
+                name: "单笔最大盈利",
+                type: "scatter",
+                yAxisIndex: 1,
+                data: maxProfitTimes.map((time, index) => ({
+                  value: maxProfitPerTrade[index],
+                  time
+                }))
+              },
+              {
+                name: "单笔最大亏损发生时间",
+                type: "line",
+                yAxisIndex: 1,
+                data: maxLossTimes
+              },
+              // 合并最大亏损和发生时间数据
+              {
+                name: "单笔最大亏损",
+                type: "scatter",
+                yAxisIndex: 1,
+                data: maxLossTimes.map((time, index) => ({
+                  value: maxLossPerTrade[index],
+                  time
+                }))
               }
             ]
           });
@@ -797,9 +824,7 @@ export default {
           startDate: startDate,
           weidu: weiduValue,
           userIds: this.searchParam.userIds,
-          channelIds: Array.isArray(this.channelId)
-            ? this.channelId
-            : [this.channelId]
+          channelIds: this.channelIds // 包装成数组
         };
         console.log("输出params11", params);
         this.ApiParams = params;
@@ -1413,6 +1438,8 @@ export default {
         }
         this.initFrameH("userSummaryH", 700);
       });
+
+      this.loadChartData();
     });
   }
 };
