@@ -240,9 +240,11 @@ export default {
                         );
                         const minWidth = Math.ceil(maxWidth * 0.7);
                         const minHeight = Math.ceil(minWidth * 0.6);
+                        // const maxWidth = Math.ceil(maxWidth * 2);
+                        // const maxHeight = Math.ceil(minWidth * 2);
                         const args = {
                           id: "main",
-                          width: minWidth, // 窗口宽度
+                          width: minWidth * 1.5, // 窗口宽度
                           height: minHeight, // 窗口高度
                           isMainWin: true,
                           resize: true, // 是否支持缩放
