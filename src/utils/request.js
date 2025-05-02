@@ -70,11 +70,12 @@ service.interceptors.response.use(
         durations: 3 * 1000
       });
     } else if (error.toString().indexOf("500") !== -1) {
-      Message({
-        message: error.response.data.message || "服务器异常（500）",
-        type: "warning",
-        durations: 3 * 1000
-      });
+      console.log("有问题哦~", error.response.data.message)
+      // Message({
+      //   message: error.response.data.message || "服务器异常111（500）",
+      //   type: "warning",
+      //   durations: 3 * 1000
+      // });
     } else if (error.toString().indexOf("400") !== -1) {
       Message({
         message: `${error.response.data.message}`,
