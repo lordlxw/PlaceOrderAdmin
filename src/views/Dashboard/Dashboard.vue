@@ -471,6 +471,7 @@ export default {
                 label: {
                   show: true,
                   position: "top",
+
                   formatter: function(params) {
                     return params.value.toFixed(2) + "%";
                   }
@@ -558,173 +559,149 @@ export default {
         }
       } else if (this.currentChartConfig === "fundSituation") {
         try {
-          const [initialProfitLossRes, rangeProfitRes] = await Promise.all([
-            api.getInitialProfitAndLoss(this.ApiParams),
-            api.getRangeProfit(this.ApiParams)
-          ]);
+    const [initialProfitLossRes, rangeProfitRes] = await Promise.all([
+      api.getInitialProfitAndLoss(this.ApiParams),
+      api.getRangeProfit(this.ApiParams)
+    ]);
 
-          // 取数据
-          const initialProfitLossData = initialProfitLossRes.value || [];
-          const rangeProfitData = rangeProfitRes.value || [];
+    const initialProfitLossData = initialProfitLossRes.value || [];
+    const rangeProfitData = rangeProfitRes.value || [];
 
-          console.log("[资金情况] 期初盈亏原始数据:", initialProfitLossData);
-          console.log("[资金情况] 区间盈亏原始数据:", rangeProfitData);
+    console.log("[资金情况] 期初盈亏原始数据:", initialProfitLossData);
+    console.log("[资金情况] 区间盈亏原始数据:", rangeProfitData);
 
-          // 提取字段
-          const traderNames = initialProfitLossData.map(d => d.index);
-          const initialProfits = initialProfitLossData.map(d => d.profit || 0);
-          const rangeProfits = rangeProfitData.map(d => d.profit || 0);
+    const traderNames = initialProfitLossData.map(d => d.index);
+    const initialProfits = initialProfitLossData.map(d => Number(d.profit) || 0);
+    const rangeProfits = rangeProfitData.map(d => Number(d.profit) || 0);
 
-          console.log("[资金情况] 交易员名称列表:", traderNames);
-          console.log("[资金情况] 期初盈亏:", initialProfits);
-          console.log("[资金情况] 区间盈亏:", rangeProfits);
+    console.log("[资金情况] 交易员名称列表:", traderNames);
+    console.log("[资金情况] 期初盈亏:", initialProfits);
+    console.log("[资金情况] 区间盈亏:", rangeProfits);
 
-          // 调用封装好的 initChart
-          this.initChart2({
-            title: "资金情况综合分析",
-            xAxisData: traderNames,
-            legendList: ["期初盈亏", "区间盈亏"],
-            yAxisConfig: [
-              {
-                type: "value",
-                name: "金额（万）",
-                min: null
-              }
-            ],
-            seriesList: [
-              {
-                name: "期初盈亏",
-                type: "bar",
-                yAxisIndex: 0,
-                data: initialProfits,
-                itemStyle: {
-                  color: params => (params.value >= 0 ? "#3CB371" : "#FF6347")
-                },
-                label: {
-                  show: true,
-                  position: "top",
-                  formatter: "{c}"
-                }
-              },
-              {
-                name: "区间盈亏",
-                type: "bar",
-                yAxisIndex: 0,
-                data: rangeProfits,
-                itemStyle: {
-                  color: params => (params.value >= 0 ? "#3CB371" : "#FF6347")
-                },
-                label: {
-                  show: true,
-                  position: "top",
-                  formatter: "{c}"
-                }
-              }
-            ]
-          });
-        } catch (error) {
-          console.error("加载资金情况图表失败", error);
-          this.$message({
-            message: `加载资金情况图表失败: ${error.message || error}`,
-            type: "error"
-          });
+    this.initChart2({
+      title: "资金情况综合分析",
+      xAxisData: traderNames,
+      legendList: ["期初盈亏", "区间盈亏"],
+      yAxisConfig: [
+        {
+          type: "value",
+          name: "金额（万）",
+          min: null
         }
+      ],
+      seriesList: [
+        {
+          name: "期初盈亏",
+          type: "bar",
+          yAxisIndex: 0,
+          data: initialProfits,
+          itemStyle: {
+            color: params => (params.value >= 0 ? "#3CB371" : "#FF6347")
+          },
+          label: {
+            show: true,
+            position: "top",
+            formatter: value => `${value.value}万`,
+            color: "#000"
+          }
+        },
+        {
+          name: "区间盈亏",
+          type: "bar",
+          yAxisIndex: 0,
+          data: rangeProfits,
+          itemStyle: {
+            color: params => (params.value >= 0 ? "#3CB371" : "#FF6347")
+          },
+          label: {
+            show: true,
+            position: "top",
+            formatter: value => `${value.value}万`,
+            color: "#000"
+          }
+        }
+      ]
+    });
+  } catch (error) {
+    console.error("加载资金情况图表失败", error);
+    this.$message({
+      message: `加载资金情况图表失败: ${error.message || error}`,
+      type: "error"
+    });
+  }
       } else {
         try {
-          const [rangeEarningRateRes, yearEarningRateRes] = await Promise.all([
-            api.getRangeEarningRate(this.ApiParams),
-            api.getYearEarningRate(this.ApiParams)
-          ]);
+  const [rangeEarningRateRes, yearEarningRateRes] = await Promise.all([
+    api.getRangeEarningRate(this.ApiParams),
+    api.getYearEarningRate(this.ApiParams)
+  ]);
 
-          // 取数据
-          const rangeEarningRateData = rangeEarningRateRes.value || [];
-          const yearEarningRateData = yearEarningRateRes.value || [];
+  const rangeEarningRateData = rangeEarningRateRes.value || [];
+  const yearEarningRateData = yearEarningRateRes.value || [];
 
-          console.log("[收益表现] 区间收益率原始数据:", rangeEarningRateData);
-          console.log("[收益表现] 年化收益率原始数据:", yearEarningRateData);
+  const traderNames = rangeEarningRateData.map(d => d.index);
+  const rangeRates = rangeEarningRateData.map(d => d.earningRate || 0);
+  const rangeProfit = rangeEarningRateData.map(d => d.profit || 0);
+  const yearRates = yearEarningRateData.map(d => d.earningRate || 0);
+  const yearProfit = yearEarningRateData.map(d => d.profit || 0);
+  const zongZiJins = rangeEarningRateData.map(d => d.zongzijin || 0);
 
-          // 提取字段
-          const traderNames = rangeEarningRateData.map(d => d.index);
-          const rangeRates = rangeEarningRateData.map(d => d.earningRate || 0);
-          const rangeProfit = rangeEarningRateData.map(d => d.profit || 0);
-          const yearRates = yearEarningRateData.map(d => d.earningRate || 0);
-          const yearProfit = yearEarningRateData.map(d => d.profit || 0);
-          const zongZiJins = rangeEarningRateData.map(d => d.zongzijin || 0); // 总资金
+  console.log("📊 traderNames:", traderNames);
+  console.log("📈 rangeRates:", rangeRates);
+  console.log("💰 rangeProfit:", rangeProfit);
+  console.log("📆 yearRates:", yearRates);
+  console.log("📆 yearProfit:", yearProfit);
+  console.log("🏦 zongZiJins:", zongZiJins);
 
-          // 打印日志
-          console.log("[收益表现] 交易员名称列表:", traderNames);
-          console.log("[收益表现] 区间收益率:", rangeRates);
-          console.log("[收益表现] 区间收益:", rangeProfit);
-          console.log("[收益表现] 年化收益率:", yearRates);
-          console.log("[收益表现] 年化收益:", yearProfit);
-          console.log("[收益表现] 总资金:", zongZiJins);
+  const allProfit = rangeProfit.concat(yearProfit);
+  const maxAbsProfit = Math.max(...allProfit.map(v => Math.abs(v)), 10);
 
-          // 调用封装好的 initChart2
-          this.initChart2({
-            title: "收益表现综合分析",
-            xAxisData: traderNames,
-            legendList: ["区间收益率", "区间收益", "年化收益率", "年化收益"],
-            yAxisConfig: [
-              {
-                type: "value",
-                name: "收益率 (%)",
-                min: 0,
-                max: 100,
-                axisLabel: { formatter: "{value} %" }
-              },
-              {
-                type: "value",
-                name: "收益金额(万)",
-                min: 0
-              }
-            ],
-            seriesList: [
-              {
-                name: "区间收益率",
-                type: "line",
-                yAxisIndex: 0,
-                data: rangeRates
-              },
-              {
-                name: "区间收益",
-                type: "bar",
-                yAxisIndex: 1,
-                data: rangeProfit,
-                tooltip: {
-                  formatter: function(params) {
-                    const index = params.dataIndex;
-                    return `收益: ${params.value} | 总资金: ${zongZiJins[index]}`;
-                  }
-                }
-              },
-              {
-                name: "年化收益率",
-                type: "line",
-                yAxisIndex: 0,
-                data: yearRates
-              },
-              {
-                name: "年化收益",
-                type: "bar",
-                yAxisIndex: 1,
-                data: yearProfit,
-                tooltip: {
-                  formatter: function(params) {
-                    const index = params.dataIndex;
-                    return `收益: ${params.value} | 总资金: ${zongZiJins[index]}`;
-                  }
-                }
-              }
-            ]
-          });
-        } catch (error) {
-          console.error("加载收益表现数据失败", error);
-          this.$message({
-            message: `加载收益表现数据失败: ${error.message || error}`,
-            type: "warning"
-          });
+  this.initChart2({
+    title: "收益表现综合分析",
+    xAxisData: traderNames,
+    tooltip: {
+      trigger: "axis",
+      formatter: function (params) {
+        const index = params[0].dataIndex;
+        let content = `👤 交易员: ${traderNames[index]}<br/>`;
+        params.forEach(p => {
+          content += `${p.marker} ${p.seriesName}: ${p.value} 万<br/>`;
+        });
+        content += `🏦 总资金: ${zongZiJins[index]} 万`;
+        return content;
+      }
+    },
+    legendList: ["区间收益率", "区间收益", "年化收益率", "年化收益", "总资金"],
+    yAxisConfig: [
+      {
+        type: "value",
+        name: "收益率 (%)",
+        min: 0,
+        max: 100,
+        axisLabel: { formatter: "{value} %" }
+      },
+      {
+        type: "value",
+        name: "收益金额(万)",
+        min: -maxAbsProfit,
+        max: maxAbsProfit,
+        axisLabel: { formatter: "{value} 万" }
+      },
+      {
+        type: "value",
+        name: "总资金(万)",
+        position: "right",
+        offset: 60,
+        axisLine: {
+          lineStyle: {
+            color: "#4a90e2"
+          }
+        },
+        axisLabel: {
+          formatter: "{value} 万"
         }
       }
+<<<<<<< HEAD
 
       console.log("测试所有数据");
       try {
@@ -959,6 +936,74 @@ export default {
         this.tableData = formattedData; // 假设你有一个绑定到表格的数据对象
       } catch (err) {
         console.error("数据加载失败", err);
+=======
+    ],
+    seriesList: [
+      {
+        name: "区间收益率",
+        type: "line",
+        yAxisIndex: 0,
+        data: rangeRates
+      },
+      {
+        name: "区间收益",
+        type: "bar",
+        yAxisIndex: 1,
+        data: rangeProfit,
+        label: {
+          show: true,
+          position: 'top',
+          formatter: value => `${value.value}万`
+        },
+        itemStyle: {
+          color: params => params.value >= 0 ? '#3fb68b' : '#ec5b56'
+        }
+      },
+      {
+        name: "年化收益率",
+        type: "line",
+        yAxisIndex: 0,
+        data: yearRates
+      },
+      {
+        name: "年化收益",
+        type: "bar",
+        yAxisIndex: 1,
+        data: yearProfit,
+        label: {
+          show: true,
+          position: 'top',
+          formatter: value => `${value.value}万`
+        },
+        itemStyle: {
+          color: params => params.value >= 0 ? '#3fb68b' : '#ec5b56'
+        }
+      },
+      {
+        name: "总资金",
+        type: "bar",
+        yAxisIndex: 2,
+        data: zongZiJins,
+        barGap: "30%",
+        itemStyle: {
+          color: "#4a90e2"
+        },
+        label: {
+          show: true,
+          position: "top",
+          formatter: value => `${value.value}万`
+        }
+      }
+    ]
+  });
+} catch (error) {
+  console.error("加载收益表现数据失败", error);
+  this.$message({
+    message: `加载收益表现数据失败: ${error.message || error}`,
+    type: "warning"
+  });
+}
+>>>>>>> 17daac36c0c7d8a42aa86314b797bd06ef59e323
       }
     },
     handleTabsChange() {
