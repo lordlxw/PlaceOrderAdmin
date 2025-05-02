@@ -80,6 +80,82 @@
 
           <!-- 主图表 -->
           <div ref="mainChart" style="width: 100%; height: 400px;"></div>
+
+          <!-- 下方：展开按钮 + 表格（新增） -->
+          <div
+            style="max-height: 400px; overflow: auto; margin-top: -40px; position: relative; z-index: 1;"
+          >
+            <el-button @click="showTable = !showTable" type="primary" plain>
+              {{ showTable ? "收起表格" : "展开数据表格" }}
+            </el-button>
+
+            <el-table
+              v-show="showTable"
+              :data="tableData"
+              style="width: 100%; margin-top: 10px;"
+            >
+              <el-table-column prop="name" label="用户" width="60" />
+              <el-table-column prop="shenglv" label="胜率" width="68" />
+              <el-table-column prop="shengfuping" label="胜平负场数" />
+              <el-table-column prop="yingKuiBi1" label="盈亏比1">
+                <template #default="{ row }">
+                  <div v-html="row.yingKuiBi1"></div>
+                </template>
+              </el-table-column>
+              <el-table-column prop="yingKuiBi2" label="盈亏比2">
+                <template #default="{ row }">
+                  <div v-html="row.yingKuiBi2"></div>
+                </template> </el-table-column
+              >able-column prop="initialProfit" label="期初盈亏" />
+              <el-table-column prop="dayMaxProfit" label="最大日盈">
+                <template #default="{ row }">
+                  <div v-html="row.dayMaxProfit"></div>
+                </template>
+              </el-table-column>
+              <el-table-column prop="dayMaxBack" label="最大日回撤">
+                <template #default="{ row }">
+                  <div v-html="row.dayMaxBack"></div>
+                </template>
+              </el-table-column>
+              <el-table-column prop="maxProfit" label="单笔最大利润">
+                <template #default="{ row }">
+                  <div v-html="row.maxProfit"></div>
+                </template>
+              </el-table-column>
+              <el-table-column prop="minProfit" label="单笔最大亏损">
+                <template #default="{ row }">
+                  <div v-html="row.minProfit"></div>
+                </template>
+              </el-table-column>
+              <el-table-column
+                prop="rangeEarningRate"
+                label="区间收益"
+                min-width="125"
+              >
+                <template #default="{ row }">
+                  <div v-html="row.rangeEarningRate"></div>
+                </template>
+              </el-table-column>
+              <el-table-column label="区间盈亏" prop="rangeProfit">
+                <template slot-scope="scope">
+                  <span
+                    :style="{ color: getProfitColor(scope.row.rangeProfit) }"
+                  >
+                    {{ scope.row.rangeProfit }}
+                  </span>
+                </template>
+              </el-table-column>
+              <el-table-column
+                prop="yearEarningRate"
+                label="年化收益"
+                min-width="125"
+              >
+                <template #default="{ row }">
+                  <div v-html="row.yearEarningRate"></div>
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
         </el-col>
       </el-row>
 
@@ -149,6 +225,7 @@ export default {
         shortcuts: [
           {
             text: "最近一周",
+
             onClick(picker) {
               const end = new Date();
               const start = new Date();
@@ -194,7 +271,9 @@ export default {
       currentChartConfig: "tradingPerformance",
       ApiParams: {}, // 示例，获取“交易表现”配置
       // 你的其他 data 属性...
-      loadChartDataCallCount: 0 // 新增一个计数器
+      loadChartDataCallCount: 0, // 新增一个计数器
+      showTable: false, // 默认不展开
+      tableData: []
     };
   },
   created() {
@@ -265,6 +344,14 @@ export default {
     }
   },
   methods: {
+    getProfitColor(value) {
+      // 提取数值部分（忽略"万"）
+      const num = parseFloat(value);
+      if (isNaN(num)) return "#000"; // 默认黑色
+      if (num > 0) return "green";
+      if (num < 0) return "red";
+      return "#000";
+    },
     // 传递配置和请求参数，改进后的 initChart 方法
     initChart2({ title, xAxisData, seriesList, legendList, yAxisConfig }) {
       // 清空现有配置
@@ -360,13 +447,19 @@ export default {
                 name: "胜率 (%)",
                 min: 0,
                 max: 100,
-                axisLabel: { formatter: "{value} %" }
+                axisLabel: {
+                  formatter: function(value) {
+                    return value.toFixed(2) + " %";
+                  }
+                }
               },
               {
                 type: "value",
                 name: "盈亏比 / 金额 (万)",
                 min: 0,
-                axisLabel: { formatter: value => `${value}万` }
+                axisLabel: {
+                  formatter: value => `${value}万`
+                }
               }
             ],
             seriesList: [
@@ -378,7 +471,9 @@ export default {
                 label: {
                   show: true,
                   position: "top",
-                  formatter: "{c}%" // {c}是当前数据项的数值
+                  formatter: function(params) {
+                    return params.value.toFixed(2) + "%";
+                  }
                 }
               },
               {
@@ -401,7 +496,7 @@ export default {
                 label: {
                   show: true,
                   position: "top",
-                  formatter: value => `${value.value}万` // value.value 是数据
+                  formatter: value => `${value.value}万`
                 }
               },
               {
@@ -428,7 +523,6 @@ export default {
                 yAxisIndex: 1,
                 data: maxProfitTimes
               },
-              // 合并最大盈利和发生时间数据
               {
                 name: "单笔最大盈利",
                 type: "scatter",
@@ -444,7 +538,6 @@ export default {
                 yAxisIndex: 1,
                 data: maxLossTimes
               },
-              // 合并最大亏损和发生时间数据
               {
                 name: "单笔最大亏损",
                 type: "scatter",
@@ -631,6 +724,241 @@ export default {
             type: "warning"
           });
         }
+      }
+
+      console.log("测试所有数据");
+      try {
+        // 延迟 1 秒后执行 loadDataTableAsync
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        await this.loadDataTableAsync();
+      } catch (error) {
+        console.error("加载数据表格失败", error);
+        this.$message({
+          message: `加载数据表格失败: ${error.message || error}`,
+          type: "error"
+        });
+      }
+    },
+
+    // 加载所有表格数据
+    async loadDataTableAsync() {
+      try {
+        // 并发请求多个接口
+        const [
+          windRateRes,
+          yingKui1Res,
+          yingKui2Res,
+          maxProfitTradeRes,
+          dailyMaxProfitRes,
+          initialProfitRes,
+          rangeEarningRateRes,
+          rangeProfitRes,
+          yearEarningRateRes
+        ] = await Promise.all([
+          api.getWindRate(this.ApiParams),
+          api.getYingKui1(this.ApiParams),
+          api.getYingKui2(this.ApiParams),
+          api.getMaxProfitByTrade(this.ApiParams),
+          api.getDailyMaxProfitAndDrawdown(this.ApiParams),
+          api.getInitialProfitAndLoss(this.ApiParams),
+          api.getRangeEarningRate(this.ApiParams),
+          api.getRangeProfit(this.ApiParams),
+          api.getYearEarningRate(this.ApiParams)
+        ]);
+
+        // 打印每个请求的响应数据
+        console.log("风控胜率数据:", windRateRes);
+        console.log("盈亏比1数据:", yingKui1Res);
+        console.log("盈亏比2数据:", yingKui2Res);
+        console.log("期初盈亏数据:", initialProfitRes);
+        console.log("单笔最大盈利数据:", maxProfitTradeRes);
+        console.log("单日最大盈利数据:", dailyMaxProfitRes);
+        console.log("区间收益率数据:", rangeEarningRateRes);
+        console.log("区间盈亏数据:", rangeProfitRes);
+        console.log("年化收益率数据:", yearEarningRateRes);
+
+        // 如果windRateRes是对象并且包含一个名为value的数组字段
+        const windRateData = windRateRes.value || [];
+        const yingKuiData1 = yingKui1Res.value || [];
+        const yingKuiData2 = yingKui2Res.value || [];
+        const initialProfitData = initialProfitRes.value || [];
+        const maxProfitTradeData = maxProfitTradeRes.value || [];
+        const dailyMaxProfitData = dailyMaxProfitRes.value || [];
+        const rangeEarningRateData = rangeEarningRateRes.value || [];
+        const rangeProfitData = rangeProfitRes.value || [];
+        const yearEarningRateData = yearEarningRateRes.value || [];
+        // 先将盈亏比1数据转为 Map，方便按 index 查找
+        const yingKuiMap1 = new Map(yingKuiData1.map(d => [d.index, d]));
+        const yingKuiMap2 = new Map(yingKuiData2.map(d => [d.index, d]));
+        const initialProfitMap = new Map(
+          initialProfitData.map(d => [d.index, d])
+        );
+        const maxProfitTradeMap = new Map(
+          maxProfitTradeData.map(d => [d.index, d])
+        ); // 单笔的
+        const dailyMaxProfitMap = new Map(
+          dailyMaxProfitData.map(d => [d.index, d])
+        ); // 单日的
+
+        const rangeEarningRateMap = new Map(
+          rangeEarningRateData.map(d => [d.index, d])
+        ); // 区间收益率数据
+
+        const rangeProfitMap = new Map(rangeProfitData.map(d => [d.index, d])); // 区间收益率数据
+
+        const yearEarningRateMap = new Map(
+          yearEarningRateData.map(d => [d.index, d])
+        ); // 年化收益数据
+
+        console.log("yingkuiMap1:", yingKuiMap1);
+        console.log("yingkuiMap2:", yingKuiMap2);
+        console.log("initialProfitMap:", initialProfitMap);
+        console.log("maxProfitTradeMap:", maxProfitTradeMap);
+        console.log("dailyMaxProfitMap:", dailyMaxProfitMap);
+        console.log("rangeEarningRateMap:", rangeEarningRateMap);
+        console.log("rangeProfitMap:", rangeProfitMap);
+        console.log("yearEarningRateMap:", yearEarningRateMap);
+        // 格式化数据为表格格式
+        const formattedData = windRateData.map(d => {
+          const winRatePercentage = (d.shenglv * 100).toFixed(2); // 胜率的百分比表示
+          const winLossDraw = `胜:${d.sheng},平:${d.ping},负:${d.bai}`; // 胜平负场数的表示
+
+          const yingKuiItem1 = yingKuiMap1.get(d.index); // 找到对应的盈亏比1项
+          const yingKuiItem2 = yingKuiMap2.get(d.index); // 找到对应的盈亏比2项
+          const initialProfitItem = initialProfitMap.get(d.index); // 找到对应的盈亏比2项
+          const maxProfitTradeItem = maxProfitTradeMap.get(d.index); // 最大盈亏单
+          const dailyMaxProfitItem = dailyMaxProfitMap.get(d.index); // 最大固盈回撤
+          const rangeEarningRateItem = rangeEarningRateMap.get(d.index); // 区间收益率
+          const rangeProfitItem = rangeProfitMap.get(d.index); // 区间盈亏
+          const yearEarningRateItem = yearEarningRateMap.get(d.index); // 年化收益率
+          console.log("maxProfitTradeItem:", maxProfitTradeItem);
+          console.log("dailyMaxProfitItem:", dailyMaxProfitItem);
+          let yingKuiStr1 = "-";
+          let yingKuiStr2 = "-";
+          let initialProfitStr = "-";
+          let maxProfitTradeStr = "-";
+          let minProfitTradeStr = "-";
+          let dailyMaxTradeStr = "-";
+          let dailyMaxBackStr = "-";
+          let rangeEarningRateStr = "-";
+          let rangeProfitStr = "-";
+          let yearEarningRateStr = "-";
+          if (yingKuiItem1) {
+            const ying = yingKuiItem1.ying.toFixed(2);
+            const kui = yingKuiItem1.kui.toFixed(2);
+            const ratio = yingKuiItem1.yingkuibi.toFixed(2);
+            yingKuiStr1 = `盈:${ying}万，亏:${kui}万<br/>盈亏比1：${ratio}%`;
+          }
+          if (yingKuiItem2) {
+            const ying = yingKuiItem2.ying.toFixed(2);
+            const kui = yingKuiItem2.kui.toFixed(2);
+            const ratio = yingKuiItem2.yingkuibi.toFixed(2);
+            yingKuiStr2 = `盈:${ying}万，亏:${kui}万<br/>盈亏比1：${ratio}%`;
+          }
+
+          if (initialProfitItem) {
+            const initialProfit = initialProfitItem.profit.toFixed(4);
+            initialProfitStr = `${initialProfit}万`;
+          }
+
+          if (dailyMaxProfitItem) {
+            const maxProfitTrade =
+              dailyMaxProfitItem.maxSolidprofit != null
+                ? dailyMaxProfitItem.maxSolidprofit.toFixed(2)
+                : "-";
+            const maxProfitTradeDate = dailyMaxProfitItem.maxSolidprofitTradeDate
+              ? dailyMaxProfitItem.maxSolidprofitTradeDate.slice(5)
+              : "-";
+            dailyMaxTradeStr = `${maxProfitTrade}万<br/>${maxProfitTradeDate}`;
+
+            const maxBackTrade =
+              dailyMaxProfitItem.maxSolidback != null
+                ? dailyMaxProfitItem.maxSolidback.toFixed(2)
+                : "-";
+            const maxBackTradeDate = dailyMaxProfitItem.maxSolidbackTradeDate
+              ? dailyMaxProfitItem.maxSolidbackTradeDate.slice(5)
+              : "-";
+            dailyMaxBackStr = `${maxBackTrade}万<br/>${maxBackTradeDate}`;
+          }
+
+          if (maxProfitTradeItem) {
+            const maxProfit =
+              maxProfitTradeItem.maxprofit != null
+                ? maxProfitTradeItem.maxprofit.toFixed(2)
+                : "-";
+            const maxProfitTradeTime = maxProfitTradeItem.tradeTime
+              ? maxProfitTradeItem.tradeTime.slice(5) // 去掉前5位，即 "YYYY-"
+              : "-";
+            maxProfitTradeStr = `${maxProfit}万<br/>${maxProfitTradeTime}`;
+
+            const minProfit =
+              maxProfitTradeItem.minprofit != null
+                ? maxProfitTradeItem.minprofit.toFixed(2)
+                : "-";
+            const minProfitTradeTime = maxProfitTradeItem.tradeTime2
+              ? maxProfitTradeItem.tradeTime2.slice(5)
+              : "-";
+            minProfitTradeStr = `${minProfit}万<br/>${minProfitTradeTime}`;
+          }
+
+          if (rangeEarningRateItem) {
+            const profit =
+              rangeEarningRateItem.profit != null
+                ? rangeEarningRateItem.profit.toFixed(2)
+                : "-";
+            const zongzijin =
+              rangeEarningRateItem.zongzijin != null
+                ? rangeEarningRateItem.zongzijin.toFixed(2)
+                : "-";
+            const earningRate =
+              rangeEarningRateItem.earningRate != null
+                ? (rangeEarningRateItem.earningRate * 100).toFixed(2) + "%"
+                : "-";
+
+            rangeEarningRateStr = `收益：${profit}万，总资金：${zongzijin}万<br/>收益率：${earningRate}`;
+          }
+
+          if (rangeProfitItem) {
+            const rangeProfit =
+              rangeProfitItem.profit != null
+                ? rangeProfitItem.profit.toFixed(2)
+                : "-";
+            rangeProfitStr = `${rangeProfit}万`;
+          }
+
+          if (yearEarningRateItem) {
+            const yearProfit =
+              yearEarningRateItem.zongzijin != null
+                ? yearEarningRateItem.profit.toFixed(2)
+                : "-";
+            const earningRate =
+              yearEarningRateItem.earningRate != null
+                ? yearEarningRateItem.earningRate.toFixed(4)
+                : "-";
+            yearEarningRateStr = `收益：${yearProfit}万<br/>年化收益率：${earningRate}%`;
+          }
+          return {
+            name: d.index, // 用户名
+            shenglv: `${winRatePercentage}%`, // 胜率
+            shengfuping: winLossDraw,
+            yingKuiBi1: yingKuiStr1,
+            yingKuiBi2: yingKuiStr2,
+            initialProfit: initialProfitStr,
+            dayMaxProfit: dailyMaxTradeStr,
+            dayMaxBack: dailyMaxBackStr,
+            maxProfit: maxProfitTradeStr,
+            minProfit: minProfitTradeStr,
+            rangeEarningRate: rangeEarningRateStr,
+            rangeProfit: rangeProfitStr,
+            yearEarningRate: yearEarningRateStr
+          };
+        });
+
+        // 假设你使用的UI库能够接收这样的数据，渲染到表格
+        this.tableData = formattedData; // 假设你有一个绑定到表格的数据对象
+      } catch (err) {
+        console.error("数据加载失败", err);
       }
     },
     handleTabsChange() {
