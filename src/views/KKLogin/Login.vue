@@ -72,7 +72,6 @@
             <el-form-item v-if="$appType == 'all'">
               <el-radio-group v-model="labelPosition" size="small">
                 <el-radio-button label="lily">管理</el-radio-button>
-                <el-radio-button label="Simulation">模拟</el-radio-button>
               </el-radio-group>
               <div class="checkbox-group">
                 <label>

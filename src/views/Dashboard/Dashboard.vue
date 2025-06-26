@@ -283,7 +283,7 @@ export default {
       myChart: {},
       activeTabs: "performance", // 默认选中 "交易表现"，也可以改为空 []
       currentChartConfig: "tradingPerformance",
-      ApiParams: {}, // 示例，获取“交易表现”配置
+      ApiParams: {}, // 示例，获取"交易表现"配置
       // 你的其他 data 属性...
       loadChartDataCallCount: 0, // 新增一个计数器
       showTable: true, // 默认展开
@@ -388,7 +388,41 @@ export default {
       this.myChart.clear();
       let option = {
         title: { text: title, left: "center" },
-        tooltip: { trigger: "axis" },
+        tooltip: {
+          trigger: "axis",
+          extraCssText: 'line-height: 2; font-size: 14px;',
+          formatter: function(params) {
+            let result = '';
+            if (Array.isArray(params)) {
+              result += params[0].axisValueLabel || params[0].name || '';
+              result += '<br/>';
+              params.forEach(item => {
+                let val = item.value;
+                let showVal = val;
+                if (typeof val === 'number' && isFinite(val)) {
+                  if (item.seriesName && item.seriesName.indexOf('胜率') !== -1) {
+                    showVal = val.toFixed(2) + '%';
+                  } else {
+                    showVal = val.toFixed(2) + ' 万';
+                  }
+                } else if (val && typeof val.value === 'number' && isFinite(val.value)) {
+                  if (item.seriesName && item.seriesName.indexOf('胜率') !== -1) {
+                    showVal = val.value.toFixed(2) + '%';
+                  } else {
+                    showVal = val.value.toFixed(2) + ' 万';
+                  }
+                } else if (typeof val === 'string') {
+                  showVal = val;
+                } else if (val && typeof val.value === 'string') {
+                  showVal = val.value;
+                }
+                result += `${item.marker} ${item.seriesName}: ${showVal}`;
+                result += '<br/>';
+              });
+            }
+            return result;
+          }
+        },
         legend: {
           data: legendList,
           top: "7%",
@@ -409,7 +443,31 @@ export default {
           }
         },
         yAxis: yAxisConfig,
-        series: seriesList
+        series: seriesList.map(ser => {
+          // 只处理有label的series
+          if (ser.label && ser.label.show) {
+            return {
+              ...ser,
+              label: {
+                ...ser.label,
+                formatter: function(value) {
+                  let v = value.value;
+                  if (typeof v === 'number') {
+                    v = v.toFixed(2);
+                  } else if (v && typeof v.value === 'number') {
+                    v = v.value.toFixed(2);
+                  }
+                  // 保留原有单位
+                  if (ser.name && ser.name.indexOf('胜率') !== -1) {
+                    return v + '%';
+                  }
+                  return v + '万';
+                }
+              }
+            };
+          }
+          return ser;
+        })
       };
 
       this.myChart.setOption(option);
@@ -693,6 +751,7 @@ export default {
             xAxisData: traderNames,
             tooltip: {
               trigger: "axis",
+              extraCssText: 'line-height: 2; font-size: 14px;',
               formatter: function(params) {
                 const index = params[0].dataIndex;
                 let content = `👤 交易员: ${traderNames[index]}<br/>`;
@@ -1095,6 +1154,7 @@ export default {
         title: { text: "交易胜率 & 盈亏比", left: "center" },
         tooltip: {
           trigger: "axis",
+          extraCssText: 'line-height: 2; font-size: 14px;',
           formatter: function(params) {
             let index = params[0].dataIndex;
             let trader = params[0].axisValue;
